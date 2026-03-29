@@ -26,3 +26,42 @@ dist-ssr
 # Environment variables
 .env
 .env.prod
+
+# \dist
+dist
+
+# Misc
+*.pem
+*.p12
+*.key
+*.crt
+*.cer
+*.pfx
+*.jks
+*.p7b
+*.p7c
+*.bak
+*.backup
+*.tmp
+*.temp
+*.log
+*.cache
+*.zip
+*.tar.gz
+*.tgz
+*.7z
+*.rar
+*.gz
+*.bz2
+*.exe
+*.dll
+*.so
+*.dylib
+*.bin
+*.iso
+*.img
+
+# package-lock.json
+yarn.lock
+pnpm-lock.yaml
+lerna-lock.json
