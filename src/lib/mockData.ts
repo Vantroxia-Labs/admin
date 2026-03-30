@@ -1,13 +1,13 @@
 /**
  * MOCK DATA — for UI review only.
- * Set USE_MOCK = false when the backend is ready.
+ * Set VITE_USE_MOCK = false in .env when the backend is ready.
  *
- * Switch active user role by changing MOCK_USER below:
- *   MOCK_USER_CLIENT_ADMIN  — business admin (default)
- *   MOCK_USER_CLIENT_USER   — read-only business user
- *   MOCK_USER_AEGIS_ADMIN   — platform super-admin
+ * Switch active user role by changing VITE_MOCK_USER_ROLE in .env:
+ *   CLIENT_ADMIN  — business admin (Chidi Okonkwo) - default
+ *   CLIENT_USER   — read-only business user (Ngozi Eze)
+ *   AEGIS_ADMIN   — platform super-admin (Emeka Adeyemi)
  */
-export const USE_MOCK = true;
+export const USE_MOCK = import.meta.env.VITE_USE_MOCK !== 'false';
 
 // Dummy QR code SVG that visually resembles a FIRS-generated QR (finder patterns + data dots)
 const _qrSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 21 21" shape-rendering="crispEdges"><rect width="21" height="21" fill="white"/><rect x="0" y="0" width="7" height="7" fill="black"/><rect x="1" y="1" width="5" height="5" fill="white"/><rect x="2" y="2" width="3" height="3" fill="black"/><rect x="14" y="0" width="7" height="7" fill="black"/><rect x="15" y="1" width="5" height="5" fill="white"/><rect x="16" y="2" width="3" height="3" fill="black"/><rect x="0" y="14" width="7" height="7" fill="black"/><rect x="1" y="15" width="5" height="5" fill="white"/><rect x="2" y="16" width="3" height="3" fill="black"/><rect x="8" y="6" width="1" height="1" fill="black"/><rect x="10" y="6" width="1" height="1" fill="black"/><rect x="12" y="6" width="1" height="1" fill="black"/><rect x="6" y="8" width="1" height="1" fill="black"/><rect x="6" y="10" width="1" height="1" fill="black"/><rect x="6" y="12" width="1" height="1" fill="black"/><rect x="8" y="8" width="1" height="1" fill="black"/><rect x="10" y="9" width="1" height="1" fill="black"/><rect x="12" y="8" width="1" height="1" fill="black"/><rect x="9" y="11" width="1" height="1" fill="black"/><rect x="11" y="10" width="1" height="1" fill="black"/><rect x="13" y="11" width="1" height="1" fill="black"/><rect x="8" y="13" width="1" height="1" fill="black"/><rect x="10" y="12" width="1" height="1" fill="black"/><rect x="12" y="13" width="1" height="1" fill="black"/><rect x="14" y="8" width="1" height="1" fill="black"/><rect x="16" y="9" width="1" height="1" fill="black"/><rect x="18" y="8" width="1" height="1" fill="black"/><rect x="20" y="9" width="1" height="1" fill="black"/><rect x="15" y="11" width="1" height="1" fill="black"/><rect x="17" y="10" width="1" height="1" fill="black"/><rect x="19" y="11" width="1" height="1" fill="black"/><rect x="14" y="13" width="1" height="1" fill="black"/><rect x="16" y="12" width="1" height="1" fill="black"/><rect x="18" y="13" width="1" height="1" fill="black"/><rect x="20" y="12" width="1" height="1" fill="black"/><rect x="8" y="14" width="1" height="1" fill="black"/><rect x="10" y="15" width="1" height="1" fill="black"/><rect x="12" y="14" width="1" height="1" fill="black"/><rect x="9" y="17" width="1" height="1" fill="black"/><rect x="11" y="16" width="1" height="1" fill="black"/><rect x="13" y="17" width="1" height="1" fill="black"/><rect x="8" y="19" width="1" height="1" fill="black"/><rect x="10" y="18" width="1" height="1" fill="black"/><rect x="12" y="19" width="1" height="1" fill="black"/><rect x="14" y="14" width="1" height="1" fill="black"/><rect x="16" y="15" width="1" height="1" fill="black"/><rect x="18" y="14" width="1" height="1" fill="black"/><rect x="20" y="15" width="1" height="1" fill="black"/><rect x="15" y="17" width="1" height="1" fill="black"/><rect x="17" y="16" width="1" height="1" fill="black"/><rect x="19" y="17" width="1" height="1" fill="black"/><rect x="14" y="19" width="1" height="1" fill="black"/><rect x="16" y="18" width="1" height="1" fill="black"/><rect x="18" y="19" width="1" height="1" fill="black"/><rect x="20" y="18" width="1" height="1" fill="black"/></svg>`;
@@ -59,10 +59,14 @@ export const MOCK_USER_AEGIS_ADMIN = {
   mustChangePassword: false,
 };
 
-// ── Change this line to switch role ──────────────────────────────────────────
-export const MOCK_USER = MOCK_USER_CLIENT_ADMIN;
-// export const MOCK_USER = MOCK_USER_CLIENT_USER;
-// export const MOCK_USER = MOCK_USER_AEGIS_ADMIN;
+// ── Active user based on .env configuration ──────────────────────────────────
+const mockUserRole = import.meta.env.VITE_MOCK_USER_ROLE || 'CLIENT_ADMIN';
+
+export const MOCK_USER = 
+  mockUserRole === 'CLIENT_USER' ? MOCK_USER_CLIENT_USER :
+  mockUserRole === 'AEGIS_ADMIN' ? MOCK_USER_AEGIS_ADMIN :
+  MOCK_USER_CLIENT_ADMIN;
+// Fallback to CLIENT_ADMIN if invalid role specified
 
 // ─── Dashboard Stats ──────────────────────────────────────────────────────────
 export const MOCK_DASHBOARD_STATS = {
@@ -431,6 +435,18 @@ export const MOCK_ANALYTICS_V2 = {
     salesVsPurchases: _m12.map((m, i) => ({ year: m.y, month: m.m, monthName: m.name, name: m.name, salesAmount: _sales[i], purchasesAmount: _purch[i] })),
     vatTrendAnalysis: _m12.map((m, i) => ({ year: m.y, month: m.m, monthName: m.name, name: m.name, outputVAT: _outVat[i], inputVAT: _inVat[i] })),
     salesAndPaymentPerMonth: _m12.map((m, i) => ({ year: m.y, month: m.m, monthName: m.name, name: m.name, sales: _sales[i], payment: _payment[i] })),
+    salesByParty: [
+      { year: 2026, month: 3, monthName: "Mar", name: "Mar", partyName: "Lafarge Africa Plc",      salesAmount: 45_200_000 },
+      { year: 2026, month: 3, monthName: "Mar", name: "Mar", partyName: "Nigerian Breweries Plc",  salesAmount: 32_100_000 },
+      { year: 2026, month: 3, monthName: "Mar", name: "Mar", partyName: "Dangote Industries Ltd",  salesAmount: 28_400_000 },
+      { year: 2026, month: 3, monthName: "Mar", name: "Mar", partyName: "MTN Nigeria Comms Plc",   salesAmount: 22_600_000 },
+      { year: 2026, month: 3, monthName: "Mar", name: "Mar", partyName: "Flour Mills of Nigeria",  salesAmount: 18_900_000 },
+      { year: 2026, month: 3, monthName: "Mar", name: "Mar", partyName: "Zenith Bank Plc",         salesAmount: 15_400_000 },
+      { year: 2026, month: 3, monthName: "Mar", name: "Mar", partyName: "Access Bank Plc",         salesAmount: 11_200_000 },
+      { year: 2026, month: 3, monthName: "Mar", name: "Mar", partyName: "BUA Group",               salesAmount:  8_700_000 },
+      { year: 2026, month: 3, monthName: "Mar", name: "Mar", partyName: "Airtel Nigeria Ltd",      salesAmount:  6_400_000 },
+      { year: 2026, month: 3, monthName: "Mar", name: "Mar", partyName: "Others",                  salesAmount: 14_500_000 },
+    ],
     salesPerRegion: [
       { region: "Lagos", salesAmount: 98_400_000 }, { region: "FCT", salesAmount: 32_100_000 },
       { region: "Rivers", salesAmount: 18_600_000 }, { region: "Kano", salesAmount: 12_300_000 },

@@ -79,11 +79,6 @@ const VatIcon = () => (
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
   </svg>
 );
-const PaidIcon = () => (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-  </svg>
-);
 
 // ─── Status badge ─────────────────────────────────────────────────────────────
 const STATUS_COLORS: Record<string, string> = {
@@ -151,7 +146,7 @@ function DonutChart({ series, labels, colors, title, total }: {
   );
 }
 
-// ─── Horizontal progress bar ──────────────────────────────────────────────────
+// ─── Horizontal progress bar (subscription plans for Aegis) ──────────────────
 function PlanBar({ label, value, total, color }: { label: string; value: number; total: number; color: string }) {
   const pct = total > 0 ? Math.round((value / total) * 100) : 0;
   return (
@@ -187,8 +182,7 @@ function RecentInvoicesTable({ invoices }: { invoices: InvoiceSummary[] }) {
             <th className="pb-2 text-left font-medium text-gray-400 dark:text-gray-500 text-xs">Invoice</th>
             <th className="pb-2 text-left font-medium text-gray-400 dark:text-gray-500 text-xs">Party</th>
             <th className="pb-2 text-right font-medium text-gray-400 dark:text-gray-500 text-xs">Amount</th>
-            <th className="pb-2 text-left font-medium text-gray-400 dark:text-gray-500 text-xs pl-3">NRS Status</th>
-            <th className="pb-2 text-left font-medium text-gray-400 dark:text-gray-500 text-xs pl-3">Payment</th>
+            <th className="pb-2 text-left font-medium text-gray-400 dark:text-gray-500 text-xs pl-3">Status</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-50 dark:divide-gray-700/50">
@@ -207,15 +201,6 @@ function RecentInvoicesTable({ invoices }: { invoices: InvoiceSummary[] }) {
               <td className="py-2.5 pl-3">
                 <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[inv.status] ?? "bg-gray-100 text-gray-600"}`}>
                   {inv.status}
-                </span>
-              </td>
-              <td className="py-2.5 pl-3">
-                <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
-                  inv.paymentStatus === "Paid" ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                  : inv.paymentStatus === "Unpaid" || inv.paymentStatus === "Pending" ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                  : "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                }`}>
-                  {inv.paymentStatus}
                 </span>
               </td>
             </tr>
@@ -281,7 +266,7 @@ export default function Home() {
               : `${tier === "SaaS" ? "Portal" : tier === "SFTP" ? "SFTP" : tier === "ApiOnly" ? "API" : ""} plan · NRS e-invoicing portal`}
           </p>
         </div>
-        {canCreate && (
+        {canCreate && !isAegis && (
           <Link to="/invoices/create" className="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium rounded-xl transition-colors">
             + New Invoice
           </Link>
@@ -294,85 +279,18 @@ export default function Home() {
         </div>
       )}
 
-      {stats && (
+      {/* ── AEGIS ADMIN VIEW ──────────────────────────────────────────────── */}
+      {stats && isAegis && (
         <div className="space-y-6">
-
-          {/* ── Row 1: Financial KPIs ────────────────────────────────────── */}
+          {/* Top KPIs */}
           <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-            <StatCard
-              label="Total Invoice Value"
-              value={`₦${(stats.totalInvoiceValue / 1_000_000).toFixed(1)}M`}
-              sub={`₦${(stats.totalInvoiceValueThisMonth / 1_000_000).toFixed(1)}M this month`}
-              icon={<MoneyIcon />}
-              color="brand"
-              trend={{ value: 12, label: "vs last month" }}
-            />
-            <StatCard
-              label="VAT Output (Collected)"
-              value={`₦${(stats.totalVatCollected / 1_000_000).toFixed(1)}M`}
-              sub={`₦${(stats.totalVatThisMonth / 1_000_000).toFixed(1)}M this month`}
-              icon={<VatIcon />}
-              color="amber"
-            />
-            <StatCard
-              label="Paid Invoices"
-              value={stats.paidInvoices}
-              sub={`of ${stats.totalInvoices} total`}
-              icon={<PaidIcon />}
-              color="green"
-            />
-            <StatCard
-              label="Outstanding (Unpaid)"
-              value={stats.unpaidInvoices}
-              sub={stats.partiallyPaidInvoices > 0 ? `+ ${stats.partiallyPaidInvoices} partially paid` : undefined}
-              icon={<ReceiveIcon />}
-              color="red"
-            />
+            <StatCard label="Total Businesses" value={stats.totalBusinesses} sub={`${stats.activeBusinesses} active`} icon={<BusinessIcon />} color="brand" />
+            <StatCard label="Total Invoices" value={stats.totalInvoices} sub={`${stats.totalInvoicesThisMonth} this month`} icon={<InvoiceIcon />} color="blue" />
+            <StatCard label="Invoice Value" value={`₦${(stats.totalInvoiceValue / 1_000_000).toFixed(1)}M`} sub={`₦${(stats.totalInvoiceValueThisMonth / 1_000_000).toFixed(1)}M this month`} icon={<MoneyIcon />} color="green" />
+            <StatCard label="VAT Collected" value={`₦${(stats.totalVatCollected / 1_000_000).toFixed(1)}M`} sub={`₦${(stats.totalVatThisMonth / 1_000_000).toFixed(1)}M this month`} icon={<VatIcon />} color="amber" />
           </div>
 
-          {/* ── Row 2: Compliance KPIs ───────────────────────────────────── */}
-          <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-            <StatCard
-              label="Total Invoices"
-              value={stats.totalInvoices}
-              sub={`${stats.totalInvoicesThisMonth} this month`}
-              icon={<InvoiceIcon />}
-              color="blue"
-            />
-            <StatCard
-              label="Confirmed by NRS"
-              value={stats.confirmedByNRS}
-              sub="IRNs issued"
-              icon={<CheckIcon />}
-              color="green"
-            />
-            <StatCard
-              label="IRNs Generated"
-              value={stats.totalIRNsGenerated}
-              sub={`${stats.pendingIRNs} pending`}
-              icon={<InvoiceIcon />}
-              color="brand"
-            />
-            {isAegis ? (
-              <StatCard
-                label="Active Businesses"
-                value={stats.activeBusinesses}
-                sub={`${stats.totalBusinesses} total · ${stats.pendingOnboardings} onboarding`}
-                icon={<BusinessIcon />}
-                color="blue"
-              />
-            ) : (
-              <StatCard
-                label="Received Invoices"
-                value={stats.totalReceivedInvoices}
-                sub="from trading partners"
-                icon={<ReceiveIcon />}
-                color="blue"
-              />
-            )}
-          </div>
-
-          {/* ── Row 3: Charts ────────────────────────────────────────────── */}
+          {/* Charts row */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Invoice Status Donut */}
             <DonutChart
@@ -398,78 +316,115 @@ export default function Home() {
               total={stats.totalInvoices.toLocaleString()}
             />
 
-            {/* Third panel: plan distribution for Aegis, summary for clients */}
-            {isAegis ? (
-              <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-5">
-                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Client Plan Distribution</h3>
-                <div className="space-y-4 mt-2">
-                  <PlanBar label="Portal (SaaS)" value={stats.saaSBusinesses} total={stats.totalBusinesses} color="#465fff" />
-                  <PlanBar label="SFTP Plan" value={stats.sftpPlanBusinesses} total={stats.totalBusinesses} color="#10b981" />
-                  <PlanBar label="API Plan" value={stats.apiPlanBusinesses} total={stats.totalBusinesses} color="#f59e0b" />
+            {/* Subscription plan distribution */}
+            <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-5">
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Plan Distribution</h3>
+              <div className="space-y-4 mt-6">
+                <PlanBar label="Portal (SaaS)" value={stats.saaSBusinesses} total={stats.totalBusinesses} color="#465fff" />
+                <PlanBar label="SFTP Plan" value={stats.sftpPlanBusinesses} total={stats.totalBusinesses} color="#10b981" />
+                <PlanBar label="API Plan" value={stats.apiPlanBusinesses} total={stats.totalBusinesses} color="#f59e0b" />
+              </div>
+              <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-700 grid grid-cols-2 gap-3">
+                <div className="text-center">
+                  <p className="text-xl font-bold text-gray-900 dark:text-white">{stats.pendingOnboardings}</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Pending Onboarding</p>
                 </div>
-                <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-700 grid grid-cols-2 gap-3">
-                  <div className="text-center">
-                    <p className="text-xl font-bold text-gray-900 dark:text-white">{stats.pendingOnboardings}</p>
-                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Pending Onboarding</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-xl font-bold text-gray-900 dark:text-white">{stats.suspendedBusinesses}</p>
-                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Suspended</p>
-                  </div>
+                <div className="text-center">
+                  <p className="text-xl font-bold text-gray-900 dark:text-white">{stats.suspendedBusinesses}</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Suspended</p>
                 </div>
               </div>
-            ) : (
-              <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-5">
-                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Compliance Summary</h3>
-                <div className="space-y-3">
-                  {[
-                    { label: "Submitted to NRS", value: stats.submittedToNRS, color: "#8b5cf6" },
-                    { label: "IRNs Generated", value: stats.totalIRNsGenerated, color: "#465fff" },
-                    { label: "Pending Approval", value: stats.pendingApprovalInvoices, color: "#f59e0b" },
-                    { label: "Received Invoices", value: stats.totalReceivedInvoices, color: "#10b981" },
-                    { label: "Rejected by NRS", value: stats.rejectedInvoices, color: "#ef4444" },
-                  ].map(item => (
-                    <div key={item.label} className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
-                        <span className="text-sm text-gray-600 dark:text-gray-400">{item.label}</span>
-                      </div>
-                      <span className="text-sm font-semibold text-gray-800 dark:text-white">{item.value.toLocaleString()}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex gap-3">
-                  <Link to="/invoices" className="flex-1 text-center text-xs font-medium text-brand-500 hover:text-brand-600 py-1.5 rounded-lg border border-brand-200 dark:border-brand-800 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors">
-                    All Invoices
-                  </Link>
-                  <Link to="/received-invoices" className="flex-1 text-center text-xs font-medium text-gray-600 dark:text-gray-400 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                    Received
-                  </Link>
-                </div>
-              </div>
-            )}
+            </div>
           </div>
 
-          {/* ── Row 4: Recent Invoices (client) / Secondary stats (Aegis) ── */}
-          {!isAegis ? (
+          {/* Secondary stats */}
+          <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+            <StatCard label="Confirmed by NRS" value={stats.confirmedByNRS} icon={<CheckIcon />} color="green" />
+            <StatCard label="IRNs Generated" value={stats.totalIRNsGenerated} sub={`${stats.pendingIRNs} pending`} icon={<InvoiceIcon />} color="blue" />
+            <StatCard label="Received Invoices" value={stats.totalReceivedInvoices} icon={<ReceiveIcon />} color="brand" />
+            <StatCard label="Pending Registrations" value={stats.pendingRegistrations} icon={<BusinessIcon />} color="amber" />
+          </div>
+        </div>
+      )}
+
+      {/* ── CLIENT ADMIN / USER VIEW ──────────────────────────────────────── */}
+      {stats && !isAegis && (
+        <div className="space-y-6">
+          {/* Top KPIs */}
+          <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+            <StatCard label="Total Invoices" value={stats.totalInvoices} sub={`${stats.totalInvoicesThisMonth} this month`} icon={<InvoiceIcon />} color="brand" />
+            <StatCard label="Confirmed by NRS" value={stats.confirmedByNRS} icon={<CheckIcon />} color="green" />
+            <StatCard label="Invoice Value" value={`₦${(stats.totalInvoiceValue / 1_000_000).toFixed(1)}M`} sub={`₦${(stats.totalInvoiceValueThisMonth / 1_000_000).toFixed(1)}M this month`} icon={<MoneyIcon />} color="blue" />
+            <StatCard label="VAT Collected" value={`₦${(stats.totalVatCollected / 1_000_000).toFixed(1)}M`} icon={<VatIcon />} color="amber" />
+          </div>
+
+          {/* Charts + Recent */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Invoice Status */}
+            <DonutChart
+              title="Invoice Status"
+              series={[
+                stats.draftInvoices,
+                stats.pendingApprovalInvoices,
+                stats.submittedToNRS,
+                stats.confirmedByNRS,
+                stats.rejectedInvoices,
+              ]}
+              labels={["Draft", "Pending Approval", "Submitted", "Confirmed", "Rejected"]}
+              colors={["#9ca3af", "#f59e0b", "#8b5cf6", "#10b981", "#ef4444"]}
+              total={stats.totalInvoices.toLocaleString()}
+            />
+
+            {/* Payment Status */}
+            <DonutChart
+              title="Payment Status"
+              series={[stats.paidInvoices, stats.unpaidInvoices, stats.partiallyPaidInvoices]}
+              labels={["Paid", "Unpaid", "Partial"]}
+              colors={["#10b981", "#ef4444", "#f59e0b"]}
+              total={stats.totalInvoices.toLocaleString()}
+            />
+
+            {/* Key numbers */}
             <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-5">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Recent Invoices</h3>
-                <Link to="/invoices" className="text-xs text-brand-500 hover:text-brand-600 font-medium">
-                  View all →
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Summary</h3>
+              <div className="space-y-3">
+                {[
+                  { label: "Submitted to NRS", value: stats.submittedToNRS, color: "#8b5cf6" },
+                  { label: "IRNs Generated", value: stats.totalIRNsGenerated, color: "#465fff" },
+                  { label: "Pending Approval", value: stats.pendingApprovalInvoices, color: "#f59e0b" },
+                  { label: "Received Invoices", value: stats.totalReceivedInvoices, color: "#10b981" },
+                  { label: "Rejected", value: stats.rejectedInvoices, color: "#ef4444" },
+                ].map(item => (
+                  <div key={item.label} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
+                      <span className="text-sm text-gray-600 dark:text-gray-400">{item.label}</span>
+                    </div>
+                    <span className="text-sm font-semibold text-gray-800 dark:text-white">{item.value.toLocaleString()}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex gap-3">
+                <Link to="/invoices" className="flex-1 text-center text-xs font-medium text-brand-500 hover:text-brand-600 py-1.5 rounded-lg border border-brand-200 dark:border-brand-800 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors">
+                  All Invoices
+                </Link>
+                <Link to="/received-invoices" className="flex-1 text-center text-xs font-medium text-gray-600 dark:text-gray-400 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                  Received
                 </Link>
               </div>
-              <RecentInvoicesTable invoices={recentInvoices} />
             </div>
-          ) : (
-            <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-              <StatCard label="Confirmed by NRS" value={stats.confirmedByNRS} icon={<CheckIcon />} color="green" />
-              <StatCard label="IRNs Generated" value={stats.totalIRNsGenerated} sub={`${stats.pendingIRNs} pending`} icon={<InvoiceIcon />} color="blue" />
-              <StatCard label="Received Invoices" value={stats.totalReceivedInvoices} icon={<ReceiveIcon />} color="brand" />
-              <StatCard label="Pending Registrations" value={stats.pendingRegistrations} icon={<BusinessIcon />} color="amber" />
-            </div>
-          )}
+          </div>
 
+          {/* Recent Invoices */}
+          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Recent Invoices</h3>
+              <Link to="/invoices" className="text-xs text-brand-500 hover:text-brand-600 font-medium">
+                View all →
+              </Link>
+            </div>
+            <RecentInvoicesTable invoices={recentInvoices} />
+          </div>
         </div>
       )}
     </>

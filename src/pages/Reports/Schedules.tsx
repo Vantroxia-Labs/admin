@@ -4,7 +4,7 @@ import PageMeta from "../../components/common/PageMeta";
 import { scheduleApi } from "../../lib/api";
 import type { VatSchedule } from "../../lib/api";
 import { USE_MOCK, MOCK_VAT_SCHEDULES } from "../../lib/mockData";
-import type { MockSchedule, MockScheduleItem } from "../../lib/mockData";
+import type { MockSchedule } from "../../lib/mockData";
 import { useIsAdmin } from "../../context/AuthContext";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -314,7 +314,7 @@ export default function Schedules() {
                   {/* Actions */}
                   <div className="flex items-center gap-2 shrink-0" onClick={e => e.stopPropagation()}>
                     <button
-                      onClick={() => handleExport(sch)}
+                      onClick={() => handleExport(sch as VatSchedule)}
                       title="Download XLSX"
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-xs font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                     >
@@ -449,7 +449,7 @@ export default function Schedules() {
               )}
             </div>
             <div className="flex justify-end gap-2 px-5 py-4 border-t border-gray-200 dark:border-gray-700">
-              <button onClick={() => setShowGenerate(false)} className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+              <button onClick={() => setShowGenerate(false)} className="px-4 py-2 border border-red-500 dark:border-red-500 text-sm rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                 Cancel
               </button>
               <button
@@ -479,7 +479,7 @@ export default function Schedules() {
                 Confirm that this VAT schedule has been filed with FIRS. This action cannot be undone.
               </p>
               <div className="flex gap-3">
-                <button onClick={() => setMarkFiledId(null)} className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                <button onClick={() => setMarkFiledId(null)} className="flex-1 px-4 py-2 border border-red-500 dark:border-red-500 text-sm rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                   Cancel
                 </button>
                 <button onClick={handleMarkFiled} disabled={markingFiled} className="flex-1 px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm rounded-xl disabled:opacity-50 transition-colors">

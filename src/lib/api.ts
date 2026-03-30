@@ -537,6 +537,7 @@ export interface SalesVsPurchasesMonthly    extends MonthlyBase { salesAmount: n
 export interface VATTrendMonthly            extends MonthlyBase { inputVAT: number; outputVAT: number; }
 export interface SalesAndPaymentMonthly     extends MonthlyBase { sales: number; payment: number; }
 export interface SalesPerPartyMonthly      extends MonthlyBase { partyName: string; salesAmount: number; }
+export interface SalesPerRegionMonthly     extends MonthlyBase { region: string; salesAmount: number; }
 export interface CurrencyAmount { currency: string; currencyName: string; amount: number; }
 export interface VATByCurrencyMonthly       extends MonthlyBase { currencyAmounts: CurrencyAmount[]; }
 export interface VATVsNonVATMonthly         extends MonthlyBase { salesVatable: number; salesNonVatable: number; purchaseVatable: number; purchaseNonVatable: number; }
@@ -548,6 +549,7 @@ export interface AnalyticsV2Result {
     vatTrendAnalysis: VATTrendMonthly[];
     salesAndPaymentPerMonth: SalesAndPaymentMonthly[];
     salesByParty: SalesPerPartyMonthly[];
+    salesPerRegion?: SalesPerRegionMonthly[];
   };
   vatTableDashboard?: {
     vatTableByCurrency: VATByCurrencyMonthly[];
@@ -558,10 +560,19 @@ export interface AnalyticsV2Result {
 
 export const analyticsV2Api = {
   get: (dashboardType: 0 | 1) => {
-    // v2 endpoint — base URL is /api/v1, so swap to /api/v2
     const root = (import.meta.env.VITE_API_BASE_URL as string || "http://localhost:5000/api/v1").replace(/\/v1$/, "");
     return api
       .get<ApiResponse<AnalyticsV2Result>>(`${root}/v2/business/dashboard-analytics`, { params: { dashboardType } })
       .then(unwrap);
+  },
+  /** Fetch both dashboards in parallel and merge into a single result. */
+  getAll: (): Promise<Required<AnalyticsV2Result>> => {
+    const root = (import.meta.env.VITE_API_BASE_URL as string || "http://localhost:5000/api/v1").replace(/\/v1$/, "");
+    const call = (t: 0 | 1) =>
+      api.get<ApiResponse<AnalyticsV2Result>>(`${root}/v2/business/dashboard-analytics`, { params: { dashboardType: t } }).then(unwrap);
+    return Promise.all([call(0), call(1)]).then(([g, v]) => ({
+      generalDashboard: g.generalDashboard!,
+      vatTableDashboard: v.vatTableDashboard!,
+    }));
   },
 };

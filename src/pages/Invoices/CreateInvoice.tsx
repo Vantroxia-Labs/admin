@@ -653,7 +653,7 @@ export default function CreateInvoice() {
         {/* Actions */}
         <div className="flex justify-end gap-3">
           <button type="button" onClick={() => navigate("/invoices")}
-            className="px-5 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+            className="px-5 py-2.5 border border-red-500 dark:border-red-500 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
             Cancel
           </button>
           <button type="submit" disabled={submitting}

@@ -4,7 +4,7 @@ import toast from "react-hot-toast";
 import PageMeta from "../../components/common/PageMeta";
 import { invoiceApi, type InvoiceSummary, type UploadInvoiceResult } from "../../lib/api";
 import { useCanCreateInvoice, useIsAdmin } from "../../context/AuthContext";
-import { USE_MOCK, MOCK_INVOICES, MOCK_PAGE_SIZE } from "../../lib/mockData";
+import { USE_MOCK, MOCK_INVOICES } from "../../lib/mockData";
 
 const STATUS_COLORS: Record<string, string> = {
   DRAFT: "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300",
@@ -205,7 +205,7 @@ export default function InvoiceList() {
         } else {
           toast.error(`NRS submission failed: ${result.message ?? "Unknown error"}`);
         }
-        fetchInvoices(page, statusFilter);
+        fetchInvoices(page, statusFilter, pageSize);
       }
     } catch {
       toast.error(`Failed to push ${code} to NRS.`);
@@ -370,7 +370,7 @@ export default function InvoiceList() {
               )}
             </div>
             <div className="flex justify-end gap-2 px-5 py-4 border-t border-gray-200 dark:border-gray-700">
-              <button onClick={closeUploadModal} disabled={uploading} className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors">
+              <button onClick={closeUploadModal} disabled={uploading} className="px-4 py-2 border border-red-500 dark:border-red-500 text-sm rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors">
                 {uploadResult ? "Close" : "Cancel"}
               </button>
               {!uploadResult && (
@@ -630,7 +630,7 @@ export default function InvoiceList() {
               </p>
             </div>
             <div className="flex justify-end gap-2 px-5 py-4 border-t border-gray-200 dark:border-gray-700">
-              <button onClick={() => setApproveModal(null)} disabled={processing} className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors">Cancel</button>
+              <button onClick={() => setApproveModal(null)} disabled={processing} className="px-4 py-2 border border-red-500 dark:border-red-500 text-sm rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors">Cancel</button>
               <button onClick={handleApprove} disabled={processing} className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded-xl disabled:opacity-50 transition-colors min-w-[90px]">
                 {processing ? "Approving..." : "Approve"}
               </button>
@@ -659,7 +659,7 @@ export default function InvoiceList() {
               />
             </div>
             <div className="flex justify-end gap-2 px-5 py-4 border-t border-gray-200 dark:border-gray-700">
-              <button onClick={() => setRejectModal(null)} disabled={processing} className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors">Cancel</button>
+              <button onClick={() => setRejectModal(null)} disabled={processing} className="px-4 py-2 border border-red-500 dark:border-red-500 text-sm rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors">Cancel</button>
               <button onClick={handleReject} disabled={processing || !rejectReason.trim()} className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-xl disabled:opacity-50 transition-colors min-w-[80px]">
                 {processing ? "Rejecting..." : "Reject"}
               </button>
