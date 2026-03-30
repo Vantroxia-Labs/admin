@@ -435,23 +435,23 @@ export const MOCK_ANALYTICS_V2 = {
     salesVsPurchases: _m12.map((m, i) => ({ year: m.y, month: m.m, monthName: m.name, name: m.name, salesAmount: _sales[i], purchasesAmount: _purch[i] })),
     vatTrendAnalysis: _m12.map((m, i) => ({ year: m.y, month: m.m, monthName: m.name, name: m.name, outputVAT: _outVat[i], inputVAT: _inVat[i] })),
     salesAndPaymentPerMonth: _m12.map((m, i) => ({ year: m.y, month: m.m, monthName: m.name, name: m.name, sales: _sales[i], payment: _payment[i] })),
-    salesByParty: [
-      { year: 2026, month: 3, monthName: "Mar", name: "Mar", partyName: "Lafarge Africa Plc",      salesAmount: 45_200_000 },
-      { year: 2026, month: 3, monthName: "Mar", name: "Mar", partyName: "Nigerian Breweries Plc",  salesAmount: 32_100_000 },
-      { year: 2026, month: 3, monthName: "Mar", name: "Mar", partyName: "Dangote Industries Ltd",  salesAmount: 28_400_000 },
-      { year: 2026, month: 3, monthName: "Mar", name: "Mar", partyName: "MTN Nigeria Comms Plc",   salesAmount: 22_600_000 },
-      { year: 2026, month: 3, monthName: "Mar", name: "Mar", partyName: "Flour Mills of Nigeria",  salesAmount: 18_900_000 },
-      { year: 2026, month: 3, monthName: "Mar", name: "Mar", partyName: "Zenith Bank Plc",         salesAmount: 15_400_000 },
-      { year: 2026, month: 3, monthName: "Mar", name: "Mar", partyName: "Access Bank Plc",         salesAmount: 11_200_000 },
-      { year: 2026, month: 3, monthName: "Mar", name: "Mar", partyName: "BUA Group",               salesAmount:  8_700_000 },
-      { year: 2026, month: 3, monthName: "Mar", name: "Mar", partyName: "Airtel Nigeria Ltd",      salesAmount:  6_400_000 },
-      { year: 2026, month: 3, monthName: "Mar", name: "Mar", partyName: "Others",                  salesAmount: 14_500_000 },
-    ],
     salesPerRegion: [
       { region: "Lagos", salesAmount: 98_400_000 }, { region: "FCT", salesAmount: 32_100_000 },
       { region: "Rivers", salesAmount: 18_600_000 }, { region: "Kano", salesAmount: 12_300_000 },
       { region: "Ogun", salesAmount: 8_200_000 },    { region: "Others", salesAmount: 15_800_000 },
     ].map(r => ({ year: 2026, month: 3, monthName: "Mar", name: "Mar", region: r.region, salesAmount: r.salesAmount })),
+    topParties: [
+      { partyName: "Lafarge Africa Plc",     totalSalesAmount: 45_200_000, invoiceCount: 28 },
+      { partyName: "Nigerian Breweries Plc", totalSalesAmount: 32_100_000, invoiceCount: 19 },
+      { partyName: "Dangote Industries Ltd", totalSalesAmount: 28_400_000, invoiceCount: 16 },
+      { partyName: "MTN Nigeria Comms Plc",  totalSalesAmount: 22_600_000, invoiceCount: 14 },
+      { partyName: "Flour Mills of Nigeria", totalSalesAmount: 18_900_000, invoiceCount: 12 },
+      { partyName: "Zenith Bank Plc",        totalSalesAmount: 15_400_000, invoiceCount:  9 },
+      { partyName: "Access Bank Plc",        totalSalesAmount: 11_200_000, invoiceCount:  7 },
+      { partyName: "BUA Group",              totalSalesAmount:  8_700_000, invoiceCount:  6 },
+      { partyName: "Airtel Nigeria Ltd",     totalSalesAmount:  6_400_000, invoiceCount:  4 },
+      { partyName: "Others",                 totalSalesAmount: 14_500_000, invoiceCount: 21 },
+    ],
   },
   vatTableDashboard: {
     vatTableByCurrency: _m12.map((m, i) => ({
@@ -467,7 +467,7 @@ export const MOCK_ANALYTICS_V2 = {
         { currency: "NGN", currencyName: "Nigerian Naira", amount: Math.round(_sales[i] * 0.008) },
       ],
     })),
-    vatTableVsNonVATTable: _m12.map((m, i) => ({
+    vatTableVsNonVATTableSalesAndPurchase: _m12.map((m, i) => ({
       year: m.y, month: m.m, monthName: m.name, name: m.name,
       salesVatable: Math.round(_sales[i] * 0.925),    salesNonVatable: Math.round(_sales[i] * 0.075),
       purchaseVatable: Math.round(_purch[i] * 0.9),   purchaseNonVatable: Math.round(_purch[i] * 0.1),

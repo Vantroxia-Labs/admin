@@ -536,8 +536,8 @@ export interface MonthlyBase { year: number; month: number; monthName: string; n
 export interface SalesVsPurchasesMonthly    extends MonthlyBase { salesAmount: number; purchasesAmount: number; }
 export interface VATTrendMonthly            extends MonthlyBase { inputVAT: number; outputVAT: number; }
 export interface SalesAndPaymentMonthly     extends MonthlyBase { sales: number; payment: number; }
-export interface SalesPerPartyMonthly      extends MonthlyBase { partyName: string; salesAmount: number; }
 export interface SalesPerRegionMonthly     extends MonthlyBase { region: string; salesAmount: number; }
+export interface SalesPerParty { partyName: string; totalSalesAmount: number; invoiceCount: number; }
 export interface CurrencyAmount { currency: string; currencyName: string; amount: number; }
 export interface VATByCurrencyMonthly       extends MonthlyBase { currencyAmounts: CurrencyAmount[]; }
 export interface VATVsNonVATMonthly         extends MonthlyBase { salesVatable: number; salesNonVatable: number; purchaseVatable: number; purchaseNonVatable: number; }
@@ -548,13 +548,14 @@ export interface AnalyticsV2Result {
     salesVsPurchases: SalesVsPurchasesMonthly[];
     vatTrendAnalysis: VATTrendMonthly[];
     salesAndPaymentPerMonth: SalesAndPaymentMonthly[];
-    salesByParty: SalesPerPartyMonthly[];
-    salesPerRegion?: SalesPerRegionMonthly[];
+    salesPerRegion: SalesPerRegionMonthly[];
+    topParties: SalesPerParty[];
   };
   vatTableDashboard?: {
     vatTableByCurrency: VATByCurrencyMonthly[];
     exemptVATTableByCurrency: VATByCurrencyMonthly[];
-    vatTableVsNonVATTable: VATVsNonVATMonthly[];
+    /** Backend field: VATTableVsNonVATTableSalesAndPurchase */
+    vatTableVsNonVATTableSalesAndPurchase: VATVsNonVATMonthly[];
   };
 }
 

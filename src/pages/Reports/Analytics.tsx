@@ -114,8 +114,8 @@ export default function Analytics() {
   const totalPayments   = g?.salesAndPaymentPerMonth.reduce((s, d) => s + d.payment, 0) ?? 0;
   const collectionGap   = totalSales - totalPayments;
 
-  const totalVatable    = vt?.vatTableVsNonVATTable.reduce((s, d) => s + d.salesVatable,    0) ?? 0;
-  const totalNonVatable = vt?.vatTableVsNonVATTable.reduce((s, d) => s + d.salesNonVatable, 0) ?? 0;
+  const totalVatable    = vt?.vatTableVsNonVATTableSalesAndPurchase.reduce((s, d) => s + d.salesVatable,    0) ?? 0;
+  const totalNonVatable = vt?.vatTableVsNonVATTableSalesAndPurchase.reduce((s, d) => s + d.salesNonVatable, 0) ?? 0;
 
   const monthLabels = g?.salesVsPurchases.map(d => d.name) ?? [];
 
@@ -193,26 +193,39 @@ export default function Analytics() {
     tooltip: { y: { formatter: (v) => fmt(v) } },
   };
   const vatCompositionSeries = [
-    { name: "Sales — VATable",         data: vt?.vatTableVsNonVATTable.map(d => d.salesVatable)       ?? [] },
-    { name: "Sales — Non-VATable",     data: vt?.vatTableVsNonVATTable.map(d => d.salesNonVatable)    ?? [] },
-    { name: "Purchases — VATable",     data: vt?.vatTableVsNonVATTable.map(d => d.purchaseVatable)    ?? [] },
-    { name: "Purchases — Non-VATable", data: vt?.vatTableVsNonVATTable.map(d => d.purchaseNonVatable) ?? [] },
+    { name: "Sales — VATable",         data: vt?.vatTableVsNonVATTableSalesAndPurchase.map(d => d.salesVatable)       ?? [] },
+    { name: "Sales — Non-VATable",     data: vt?.vatTableVsNonVATTableSalesAndPurchase.map(d => d.salesNonVatable)    ?? [] },
+    { name: "Purchases — VATable",     data: vt?.vatTableVsNonVATTableSalesAndPurchase.map(d => d.purchaseVatable)    ?? [] },
+    { name: "Purchases — Non-VATable", data: vt?.vatTableVsNonVATTableSalesAndPurchase.map(d => d.purchaseNonVatable) ?? [] },
   ];
 
-  // 6. Top customers — horizontal bar
-  const partyMap: Record<string, number> = {};
-  g?.salesByParty?.forEach(d => { partyMap[d.partyName] = (partyMap[d.partyName] ?? 0) + d.salesAmount; });
-  const partyEntries = Object.entries(partyMap).sort((a, b) => b[1] - a[1]).slice(0, 10);
-  const topCustomersOpts: ApexOptions = {
+  // 6. Revenue by region — horizontal bar
+  const regionMap: Record<string, number> = {};
+  g?.salesPerRegion?.forEach(d => { regionMap[d.region] = (regionMap[d.region] ?? 0) + d.salesAmount; });
+  const regionEntries = Object.entries(regionMap).sort((a, b) => b[1] - a[1]);
+  const revenueByRegionOpts: ApexOptions = {
     ...CHART_BASE,
     chart: { ...CHART_BASE.chart, type: "bar" },
     plotOptions: { bar: { horizontal: true, barHeight: "60%", borderRadius: 3 } },
     colors: ["#465FFF"],
     xaxis: { labels: { style: { fontSize: "11px", colors: "#9ca3af" }, formatter: (v) => `₦${(Number(v) / 1_000_000).toFixed(0)}M` } },
-    yaxis: { categories: partyEntries.map(r => r[0]) } as ApexOptions["yaxis"],
+    yaxis: { categories: regionEntries.map(r => r[0]) } as ApexOptions["yaxis"],
     tooltip: { y: { formatter: (v) => fmt(v) } },
   };
-  const topCustomersSeries = [{ name: "Revenue", data: partyEntries.map(r => r[1]) }];
+  const revenueByRegionSeries = [{ name: "Revenue", data: regionEntries.map(r => r[1]) }];
+
+  // 7. Top customers — horizontal bar (from backend topParties)
+  const topParties = g?.topParties ?? [];
+  const topCustomersOpts: ApexOptions = {
+    ...CHART_BASE,
+    chart: { ...CHART_BASE.chart, type: "bar" },
+    plotOptions: { bar: { horizontal: true, barHeight: "60%", borderRadius: 3 } },
+    colors: ["#22C55E"],
+    xaxis: { labels: { style: { fontSize: "11px", colors: "#9ca3af" }, formatter: (v) => `₦${(Number(v) / 1_000_000).toFixed(0)}M` } },
+    yaxis: { categories: topParties.map(p => p.partyName) } as ApexOptions["yaxis"],
+    tooltip: { y: { formatter: (v) => fmt(v) } },
+  };
+  const topCustomersSeries = [{ name: "Revenue", data: topParties.map(p => p.totalSalesAmount) }];
 
   // ─────────────────────────────────────────────────────────────────────────
   const periodStart = monthLabels[0] ?? "";
@@ -362,7 +375,7 @@ export default function Analytics() {
             <Chart options={netVatOpts} series={netVatSeries} type="bar" height={220} />
           </ChartCard>
 
-          {/* ── Section 5: Composition & Concentration ─────────────────── */}
+          {/* ── Section 5: Composition & Exposure ──────────────────────── */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
             <ChartCard
               title="VATable vs Non-VATable Transactions"
@@ -371,16 +384,28 @@ export default function Analytics() {
               <Chart options={vatCompositionOpts} series={vatCompositionSeries} type="line" height={260} />
             </ChartCard>
             <ChartCard
-              title="Revenue by Top 10 Customers"
-              sub="Customer concentration risk — heavy reliance on a few buyers increases receivables exposure"
+              title="Revenue by Region"
+              sub="Geographic revenue concentration — highlights regional dependency and expansion opportunities"
             >
-              {partyEntries.length === 0 ? (
-                <div className="flex items-center justify-center h-40 text-sm text-gray-400 dark:text-gray-500">No customer data</div>
+              {regionEntries.length === 0 ? (
+                <div className="flex items-center justify-center h-40 text-sm text-gray-400 dark:text-gray-500">No regional data</div>
               ) : (
-                <Chart options={topCustomersOpts} series={topCustomersSeries} type="bar" height={260} />
+                <Chart options={revenueByRegionOpts} series={revenueByRegionSeries} type="bar" height={260} />
               )}
             </ChartCard>
           </div>
+
+          {/* ── Section 6: Top Customers ─────────────────────────────────── */}
+          <ChartCard
+            title="Top 10 Customers by Revenue"
+            sub="Customer concentration risk — heavy reliance on a few buyers increases receivables and credit exposure"
+          >
+            {topParties.length === 0 ? (
+              <div className="flex items-center justify-center h-40 text-sm text-gray-400 dark:text-gray-500">No customer data</div>
+            ) : (
+              <Chart options={topCustomersOpts} series={topCustomersSeries} type="bar" height={280} />
+            )}
+          </ChartCard>
 
         </div>
       )}
