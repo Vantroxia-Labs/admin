@@ -273,7 +273,7 @@ export const invoiceApi = {
   get: (id: string) => api.get<ApiResponse<unknown>>(`/invoice/${id}`).then(unwrap),
 
   create: (payload: CreateInvoicePayload) =>
-    api.post<ApiResponse<unknown>>("/invoice", payload).then(unwrap),
+    api.post<ApiResponse<InvoiceSummary>>("/invoice", payload).then(unwrap),
 
   approve: (id: string, comments?: string) => api.post(`/invoice/${id}/approve`, comments ? { comments } : {}),
 

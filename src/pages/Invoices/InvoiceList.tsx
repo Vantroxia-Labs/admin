@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
 import toast from "react-hot-toast";
 import PageMeta from "../../components/common/PageMeta";
-import { invoiceApi, type InvoiceSummary, type UploadInvoiceResult } from "../../lib/api";
+import { invoiceApi, type InvoiceSummary, type UploadInvoiceResult, type SubmitInvoiceResult } from "../../lib/api";
 import { useCanCreateInvoice, useIsAdmin } from "../../context/AuthContext";
 import { USE_MOCK, MOCK_INVOICES } from "../../lib/mockData";
 
@@ -171,6 +171,7 @@ export default function InvoiceList() {
   const [rejectModal, setRejectModal] = useState<{ id: string; code: string } | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [processing, setProcessing] = useState(false);
+  const [submissionResult, setSubmissionResult] = useState<SubmitInvoiceResult | null>(null);
 
   const loadPendingApprovals = () => {
     if (USE_MOCK) {
@@ -194,17 +195,22 @@ export default function InvoiceList() {
     try {
       if (USE_MOCK) {
         await new Promise<void>(r => setTimeout(r, 1200));
-        toast.success(`${code} submitted to NRS successfully.`);
+        const mockResult: SubmitInvoiceResult = {
+          invoiceId: id,
+          irn: code,
+          currentStatus: "TRANSMITTED",
+          message: "Invoice submitted successfully",
+          pipeline: {
+            validate: { success: true, message: "Invoice validated successfully" },
+            sign: { success: true, message: "Invoice signed successfully" },
+            transmit: { success: true, message: "Invoice transmitted successfully" }
+          }
+        };
+        setSubmissionResult(mockResult);
         setInvoices(prev => prev.map(inv => inv.id === id ? { ...inv, status: "TRANSMITTED" } : inv));
       } else {
         const result = await invoiceApi.submitToNRS(id);
-        if (result.pipeline?.transmit?.success) {
-          toast.success(`${code} transmitted to NRS.`);
-        } else if (result.pipeline?.sign?.success) {
-          toast.success(`${code} submitted (transmission pending).`);
-        } else {
-          toast.error(`NRS submission failed: ${result.message ?? "Unknown error"}`);
-        }
+        setSubmissionResult(result);
         fetchInvoices(page, statusFilter, pageSize);
       }
     } catch {
@@ -662,6 +668,138 @@ export default function InvoiceList() {
               <button onClick={() => setRejectModal(null)} disabled={processing} className="px-4 py-2 border border-red-500 dark:border-red-500 text-sm rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors">Cancel</button>
               <button onClick={handleReject} disabled={processing || !rejectReason.trim()} className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-xl disabled:opacity-50 transition-colors min-w-[80px]">
                 {processing ? "Rejecting..." : "Reject"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* NRS Submission Summary Modal */}
+      {submissionResult && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 w-full max-w-lg shadow-xl">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-lg font-semibold text-gray-800 dark:text-white">NRS Submission Summary</h2>
+              <button onClick={() => setSubmissionResult(null)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-5">
+              {/* Overall Status */}
+              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-xl">
+                <div>
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Invoice</p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">{submissionResult.irn}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Status</p>
+                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
+                    submissionResult.pipeline.transmit?.success 
+                      ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" 
+                      : "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
+                  }`}>
+                    {STATUS_LABELS[submissionResult.currentStatus] || submissionResult.currentStatus}
+                  </span>
+                </div>
+              </div>
+
+              {/* Pipeline Steps */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Pipeline Steps</h3>
+                
+                {/* Validate Step */}
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-900">
+                  <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                    submissionResult.pipeline.validate?.success 
+                      ? "bg-green-100 dark:bg-green-900/30" 
+                      : "bg-red-100 dark:bg-red-900/30"
+                  }`}>
+                    {submissionResult.pipeline.validate?.success ? (
+                      <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-800 dark:text-white">1. Validate</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+                      {submissionResult.pipeline.validate?.message || "Validation step completed"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Sign Step */}
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-900">
+                  <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                    submissionResult.pipeline.sign?.success 
+                      ? "bg-green-100 dark:bg-green-900/30" 
+                      : "bg-red-100 dark:bg-red-900/30"
+                  }`}>
+                    {submissionResult.pipeline.sign?.success ? (
+                      <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-800 dark:text-white">2. Sign</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+                      {submissionResult.pipeline.sign?.message || "Signing step completed"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Transmit Step */}
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-900">
+                  <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                    submissionResult.pipeline.transmit?.success 
+                      ? "bg-green-100 dark:bg-green-900/30" 
+                      : "bg-red-100 dark:bg-red-900/30"
+                  }`}>
+                    {submissionResult.pipeline.transmit?.success ? (
+                      <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-800 dark:text-white">3. Transmit</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+                      {submissionResult.pipeline.transmit?.message || "Transmission step completed"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Overall Message */}
+              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <p className="text-sm text-blue-800 dark:text-blue-300">
+                  {submissionResult.message}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+              <button 
+                onClick={() => setSubmissionResult(null)} 
+                className="px-6 py-2.5 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium rounded-xl transition-colors"
+              >
+                Close
               </button>
             </div>
           </div>

@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router";
 import toast from "react-hot-toast";
 import PageMeta from "../../components/common/PageMeta";
+import DatePicker from "../../components/form/date-picker";
 import {
   invoiceApi,
   partyApi,
@@ -14,6 +15,7 @@ import {
   type InvoiceItemPayload,
   type DocumentReferenceDto,
   type InvoiceSummary,
+  type SubmitInvoiceResult,
 } from "../../lib/api";
 import { USE_MOCK, MOCK_INVOICES, MOCK_PARTIES, MOCK_ITEMS, MOCK_TAX_CATEGORIES } from "../../lib/mockData";
 
@@ -73,6 +75,10 @@ export default function CreateInvoice() {
   const [loadingLookups, setLoadingLookups] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [showDocRefs, setShowDocRefs] = useState(false);
+  const [createdInvoiceId, setCreatedInvoiceId] = useState<string | null>(null);
+  const [showPushModal, setShowPushModal] = useState(false);
+  const [pushingToFIRS, setPushingToFIRS] = useState(false);
+  const [pushSummary, setPushSummary] = useState<SubmitInvoiceResult | null>(null);
 
   const [form, setForm] = useState({
     partyId: "",
@@ -271,9 +277,18 @@ export default function CreateInvoice() {
 
     setSubmitting(true);
     try {
-      await invoiceApi.create(payload);
-      toast.success("Invoice created successfully.");
-      navigate("/invoices");
+      if (USE_MOCK) {
+        await new Promise<void>(r => setTimeout(r, 800));
+        const mockId = `mock-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+        toast.success("Invoice created successfully.");
+        setCreatedInvoiceId(mockId);
+        setShowPushModal(true);
+      } else {
+        const result = await invoiceApi.create(payload);
+        toast.success("Invoice created successfully.");
+        setCreatedInvoiceId(result.id);
+        setShowPushModal(true);
+      }
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
         ?? "Failed to create invoice.";
@@ -282,6 +297,50 @@ export default function CreateInvoice() {
       setSubmitting(false);
     }
   };
+
+  const handlePushToFIRS = async () => {
+    if (!createdInvoiceId) return;
+    setPushingToFIRS(true);
+    try {
+      if (USE_MOCK) {
+        await new Promise<void>(r => setTimeout(r, 1200));
+        const mockSummary: SubmitInvoiceResult = {
+          invoiceId: createdInvoiceId,
+          irn: `INV-MOCK-${Date.now()}`,
+          currentStatus: "TRANSMITTED",
+          message: "Invoice submitted successfully through the entire pipeline",
+          pipeline: {
+            validate: { success: true, message: "Invoice validated successfully" },
+            sign: { success: true, message: "Invoice signed successfully" },
+            transmit: { success: true, message: "Invoice transmitted to FIRS successfully" },
+          },
+        };
+        setShowPushModal(false);
+        setPushSummary(mockSummary);
+      } else {
+        const result = await invoiceApi.submitToNRS(createdInvoiceId);
+        setShowPushModal(false);
+        setPushSummary(result);
+      }
+    } catch {
+      toast.error("Failed to push invoice to FIRS.");
+    } finally {
+      setPushingToFIRS(false);
+    }
+  };
+
+  const handleSkipPush = () => {
+    setShowPushModal(false);
+    navigate("/invoices");
+  };
+
+  const handleIssueDateChange = useCallback((_: Date[], dateStr: string) => {
+    setForm(prev => ({ ...prev, issueDate: dateStr }));
+  }, []);
+
+  const handleDueDateChange = useCallback((_: Date[], dateStr: string) => {
+    setForm(prev => ({ ...prev, dueDate: dateStr }));
+  }, []);
 
   if (loadingLookups) {
     return (
@@ -341,13 +400,23 @@ export default function CreateInvoice() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Issue Date <span className="text-error-500">*</span></label>
-              <input type="date" value={form.issueDate} onChange={handleFieldChange("issueDate")} className={inputCls} required />
+              <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">Issue Date <span className="text-error-500">*</span></label>
+              <DatePicker
+                id="invoice-issue-date"
+                placeholder="Select issue date"
+                defaultDate={form.issueDate}
+                onChange={handleIssueDateChange}
+              />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Due Date</label>
-              <input type="date" value={form.dueDate} onChange={handleFieldChange("dueDate")} className={inputCls} />
+              <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">Due Date</label>
+              <DatePicker
+                id="invoice-due-date"
+                placeholder="Select due date (optional)"
+                defaultDate={form.dueDate || undefined}
+                onChange={handleDueDateChange}
+              />
             </div>
 
             <div>
@@ -662,6 +731,157 @@ export default function CreateInvoice() {
           </button>
         </div>
       </form>
+
+      {/* NRS Submission Summary Modal */}
+      {pushSummary && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 w-full max-w-lg shadow-xl">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-lg font-semibold text-gray-800 dark:text-white">NRS Submission Summary</h2>
+              <button onClick={() => { setPushSummary(null); navigate("/invoices"); }} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="p-6 space-y-5">
+              {/* Invoice + Status header */}
+              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-xl">
+                <div>
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Invoice Reference</p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">{pushSummary.irn}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Status</p>
+                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
+                    pushSummary.pipeline.transmit?.success
+                      ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                      : "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
+                  }`}>
+                    {pushSummary.currentStatus}
+                  </span>
+                </div>
+              </div>
+
+              {/* Pipeline Steps */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Pipeline Steps</h3>
+
+                {(["validate", "sign", "transmit"] as const).map((step, idx) => {
+                  const s = pushSummary.pipeline[step];
+                  const labels = ["1. Validate", "2. Sign", "3. Transmit"];
+                  return (
+                    <div key={step} className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-900">
+                      <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                        s?.success ? "bg-green-100 dark:bg-green-900/30" : "bg-red-100 dark:bg-red-900/30"
+                      }`}>
+                        {s?.success ? (
+                          <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-800 dark:text-white">{labels[idx]}</p>
+                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">{s?.message || `${step} step completed`}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Overall message */}
+              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <p className="text-sm text-blue-800 dark:text-blue-300">{pushSummary.message}</p>
+              </div>
+            </div>
+
+            <div className="flex justify-end px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+              <button
+                onClick={() => { setPushSummary(null); navigate("/invoices"); }}
+                className="px-6 py-2.5 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium rounded-xl transition-colors"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Push to FIRS Confirmation Modal */}
+      {showPushModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 w-full max-w-md shadow-xl">
+            <div className="px-6 py-5 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-3">
+                <div className="flex-shrink-0 w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                  <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Invoice Created!</h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Your invoice has been created successfully.</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              <p className="text-sm text-gray-700 dark:text-gray-300 mb-4">
+                Would you like to push this invoice to FIRS now? This will validate, sign, and transmit the invoice through the NRS system.
+              </p>
+              
+              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+                <div className="flex items-start gap-2">
+                  <svg className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div className="text-xs text-blue-800 dark:text-blue-300">
+                    <p className="font-medium mb-1">This will:</p>
+                    <ul className="space-y-1 ml-3">
+                      <li>• Validate your invoice against FIRS requirements</li>
+                      <li>• Digitally sign the invoice via NRS</li>
+                      <li>• Transmit the signed invoice to FIRS</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+              <button 
+                onClick={handleSkipPush} 
+                disabled={pushingToFIRS}
+                className="px-5 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+              >
+                Not Now
+              </button>
+              <button 
+                onClick={handlePushToFIRS} 
+                disabled={pushingToFIRS}
+                className="px-5 py-2.5 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium rounded-xl disabled:opacity-50 transition-colors min-w-[140px] flex items-center justify-center gap-2"
+              >
+                {pushingToFIRS ? (
+                  <>
+                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                    </svg>
+                    Pushing...
+                  </>
+                ) : (
+                  "Yes, Push to FIRS"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
