@@ -338,56 +338,51 @@ export default function Analytics() {
     },
   ];
 
-  // 4. Net VAT payable per month — bar
+  // 4+5 consolidated — VATable composition bars + Net VAT Payable line (combo)
   const netVatMonthly =
     g?.vatTrendAnalysis.map((d) => d.outputVAT - d.inputVAT) ?? [];
-  const netVatOpts: ApexOptions = {
-    ...CHART_BASE,
-    chart: { ...CHART_BASE.chart, type: "bar" },
-    plotOptions: { bar: { columnWidth: "55%", borderRadius: 3 } },
-    colors: ["#EF4444"],
-    xaxis: { ...CHART_BASE.xaxis, categories: monthLabels },
-    yaxis: {
-      labels: {
-        style: { fontSize: "11px", colors: "#9ca3af" },
-        formatter: (v) => `₦${(v / 1_000).toFixed(0)}K`,
-      },
-    },
-    tooltip: { y: { formatter: (v) => fmt(v) } },
-  };
-  const netVatSeries = [
-    { name: "Net VAT Payable (monthly)", data: netVatMonthly },
-  ];
-
-  // 5. VATable vs Non-VATable composition — line
-  const vatCompositionOpts: ApexOptions = {
+  const vatComboOpts: ApexOptions = {
     ...CHART_BASE,
     chart: { ...CHART_BASE.chart, type: "line" },
-    stroke: {
-      width: [2.5, 2.5, 2.5, 2.5],
-      curve: "smooth",
-      dashArray: [0, 5, 0, 5],
-    },
-    colors: ["#465FFF", "#93C5FD", "#22C55E", "#86EFAC"],
-    markers: { size: 3 },
+    stroke: { width: [0, 0, 0, 0, 2.5], curve: "smooth" },
+    plotOptions: { bar: { columnWidth: "55%", borderRadius: 2 } },
+    colors: ["#465FFF", "#93C5FD", "#22C55E", "#86EFAC", "#EF4444"],
+    markers: { size: [0, 0, 0, 0, 4] },
     xaxis: { ...CHART_BASE.xaxis, categories: monthLabels },
-    yaxis: {
-      labels: {
-        style: { fontSize: "11px", colors: "#9ca3af" },
-        formatter: (v) => `₦${(v / 1_000_000).toFixed(0)}M`,
+    yaxis: [
+      {
+        seriesName: "Sales — VATable",
+        labels: {
+          style: { fontSize: "11px", colors: "#9ca3af" },
+          formatter: (v) => `₦${(v / 1_000_000).toFixed(0)}M`,
+        },
       },
-    },
-    tooltip: { y: { formatter: (v) => fmt(v) } },
+      { seriesName: "Sales — Non-VATable", show: false },
+      { seriesName: "Purchases — VATable", show: false },
+      { seriesName: "Purchases — Non-VATable", show: false },
+      {
+        opposite: true,
+        seriesName: "Net VAT Payable",
+        labels: {
+          style: { fontSize: "11px", colors: "#EF4444" },
+          formatter: (v) => `₦${(v / 1_000).toFixed(0)}K`,
+        },
+      },
+    ],
+    tooltip: { shared: true, y: { formatter: (v) => fmt(v) } },
+    legend: { position: "top", fontSize: "11px" },
   };
-  const vatCompositionSeries = [
+  const vatComboSeries = [
     {
       name: "Sales — VATable",
+      type: "bar",
       data:
         vt?.vatTableVsNonVATTableSalesAndPurchase.map((d) => d.salesVatable) ??
         [],
     },
     {
       name: "Sales — Non-VATable",
+      type: "bar",
       data:
         vt?.vatTableVsNonVATTableSalesAndPurchase.map(
           (d) => d.salesNonVatable,
@@ -395,6 +390,7 @@ export default function Analytics() {
     },
     {
       name: "Purchases — VATable",
+      type: "bar",
       data:
         vt?.vatTableVsNonVATTableSalesAndPurchase.map(
           (d) => d.purchaseVatable,
@@ -402,10 +398,16 @@ export default function Analytics() {
     },
     {
       name: "Purchases — Non-VATable",
+      type: "bar",
       data:
         vt?.vatTableVsNonVATTableSalesAndPurchase.map(
           (d) => d.purchaseNonVatable,
         ) ?? [],
+    },
+    {
+      name: "Net VAT Payable",
+      type: "line",
+      data: netVatMonthly,
     },
   ];
 
@@ -423,14 +425,15 @@ export default function Analytics() {
     },
     colors: ["#465FFF"],
     xaxis: {
+      categories: regionEntries.map((r) => r[0]),
       labels: {
         style: { fontSize: "11px", colors: "#9ca3af" },
         formatter: (v) => `₦${(Number(v) / 1_000_000).toFixed(0)}M`,
       },
     },
     yaxis: {
-      categories: regionEntries.map((r) => r[0]),
-    } as ApexOptions["yaxis"],
+      labels: { style: { fontSize: "11px", colors: "#9ca3af" } },
+    },
     tooltip: { y: { formatter: (v) => fmt(v) } },
   };
   const revenueByRegionSeries = [
@@ -447,14 +450,15 @@ export default function Analytics() {
     },
     colors: ["#22C55E"],
     xaxis: {
+      categories: topParties.map((p) => p.partyName),
       labels: {
         style: { fontSize: "11px", colors: "#9ca3af" },
         formatter: (v) => `₦${(Number(v) / 1_000_000).toFixed(0)}M`,
       },
     },
     yaxis: {
-      categories: topParties.map((p) => p.partyName),
-    } as ApexOptions["yaxis"],
+      labels: { style: { fontSize: "11px", colors: "#9ca3af" } },
+    },
     tooltip: { y: { formatter: (v) => fmt(v) } },
   };
   const topCustomersSeries = [
@@ -468,7 +472,7 @@ export default function Analytics() {
   return (
     <>
       <PageMeta
-        title="Analytics | Aegis NRS Portal"
+        title="Analytics | Aegis EInvoicing Portal"
         description="Financial analytics and VAT intelligence"
       />
 
@@ -651,39 +655,28 @@ export default function Analytics() {
             </div>
           </div>
 
-          {/* ── Section 4: Net VAT per Month ────────────────────────────── */}
+          {/* ── Section 4+5: VAT Composition & Net Payable ─────────────── */}
           <ChartCard
-            title="Monthly Net VAT Payable"
-            sub="Output VAT minus Input Tax Credit — the amount owed to NRS each month"
+            title="VATable vs Non-VATable Transactions & Net VAT Payable"
+            sub="Bars show VATable/exempt split across sales and purchases; red line shows net VAT owed to NRS each month"
           >
             <Chart
-              options={netVatOpts}
-              series={netVatSeries}
-              type="bar"
-              height={220}
+              options={vatComboOpts}
+              series={vatComboSeries}
+              type="line"
+              height={280}
             />
           </ChartCard>
 
-          {/* ── Section 5: Composition & Exposure ──────────────────────── */}
+          {/* ── Section 5: Geographic & Customer Exposure ───────────── */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
             <ChartCard
-              title="VATable vs Non-VATable Transactions"
-              sub="Revenue and purchase split between VATable and zero-rated/exempt — key for NRS compliance filing"
-            >
-              <Chart
-                options={vatCompositionOpts}
-                series={vatCompositionSeries}
-                type="line"
-                height={260}
-              />
-            </ChartCard>
-            <ChartCard
-              title="Revenue by Region"
-              sub="Geographic revenue concentration — highlights regional dependency and expansion opportunities"
+              title="Revenue by State"
+              sub="Revenue concentration by customer state — highlights geographic dependency and expansion opportunities"
             >
               {regionEntries.length === 0 ? (
                 <div className="flex items-center justify-center h-40 text-sm text-gray-400 dark:text-gray-500">
-                  No regional data
+                  No state data
                 </div>
               ) : (
                 <Chart
@@ -694,26 +687,26 @@ export default function Analytics() {
                 />
               )}
             </ChartCard>
-          </div>
 
-          {/* ── Section 6: Top Customers ─────────────────────────────────── */}
-          <ChartCard
-            title="Top 10 Customers by Revenue"
-            sub="Customer concentration risk — heavy reliance on a few buyers increases receivables and credit exposure"
-          >
-            {topParties.length === 0 ? (
-              <div className="flex items-center justify-center h-40 text-sm text-gray-400 dark:text-gray-500">
-                No customer data
-              </div>
-            ) : (
-              <Chart
-                options={topCustomersOpts}
-                series={topCustomersSeries}
-                type="bar"
-                height={280}
-              />
-            )}
-          </ChartCard>
+            {/* ── Top Customers ───────────────────────────────────────── */}
+            <ChartCard
+              title="Top 10 Customers by Revenue"
+              sub="Customer concentration risk — heavy reliance on a few buyers increases receivables and credit exposure"
+            >
+              {topParties.length === 0 ? (
+                <div className="flex items-center justify-center h-40 text-sm text-gray-400 dark:text-gray-500">
+                  No customer data
+                </div>
+              ) : (
+                <Chart
+                  options={topCustomersOpts}
+                  series={topCustomersSeries}
+                  type="bar"
+                  height={260}
+                />
+              )}
+            </ChartCard>
+          </div>
         </div>
       )}
     </>

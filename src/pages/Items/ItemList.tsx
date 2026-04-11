@@ -9,14 +9,24 @@ import {
   type BusinessItemTaxCategory,
   type CreateBusinessItemPayload,
   type TaxCategory,
+  type FIRSServiceCode,
+  type ProductCode,
 } from "../../lib/api";
-import { USE_MOCK, MOCK_ITEMS, MOCK_TAX_CATEGORIES } from "../../lib/mockData";
+import {
+  USE_MOCK,
+  MOCK_ITEMS,
+  MOCK_TAX_CATEGORIES,
+  MOCK_SERVICE_CODES,
+  MOCK_PRODUCT_CODES,
+} from "../../lib/mockData";
 import { useIsAdmin, useIsAegis } from "../../context/AuthContext";
 
 const inputCls =
   "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500";
 
 const PAGE_SIZE_OPTIONS = [5, 10, 25, 50];
+
+const defaultTaxEntry = { code: "", name: "", isPercentage: true, percent: 0 };
 
 const emptyForm: CreateBusinessItemPayload = {
   name: "",
@@ -25,7 +35,7 @@ const emptyForm: CreateBusinessItemPayload = {
   itemCategoryName: "",
   itemDescription: "",
   unitPrice: 0,
-  taxCategories: [],
+  taxCategories: [{ ...defaultTaxEntry }],
 };
 
 export default function ItemList() {
@@ -41,19 +51,29 @@ export default function ItemList() {
   const [totalCount, setTotalCount] = useState(0);
 
   const [taxCategories, setTaxCategories] = useState<TaxCategory[]>([]);
+  const [serviceCodes, setServiceCodes] = useState<FIRSServiceCode[]>([]);
+  const [productCodes, setProductCodes] = useState<ProductCode[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<BusinessItem | null>(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<CreateBusinessItemPayload>(emptyForm);
 
-  // Load tax categories once
+  // Load lookup data once
   useEffect(() => {
     if (USE_MOCK) {
       setTaxCategories(MOCK_TAX_CATEGORIES as TaxCategory[]);
+      setServiceCodes(MOCK_SERVICE_CODES as FIRSServiceCode[]);
+      setProductCodes(MOCK_PRODUCT_CODES as ProductCode[]);
       return;
     }
     NRSApi.getTaxCategories()
       .then(setTaxCategories)
+      .catch(() => {});
+    NRSApi.getServiceCodes()
+      .then(setServiceCodes)
+      .catch(() => {});
+    NRSApi.getProductCodes()
+      .then(setProductCodes)
       .catch(() => {});
   }, []);
 
@@ -62,7 +82,12 @@ export default function ItemList() {
       const total = Math.ceil(MOCK_ITEMS.length / ps);
       setTotalCount(MOCK_ITEMS.length);
       setTotalPages(total);
-      setItems(MOCK_ITEMS.slice((p - 1) * ps, p * ps) as unknown as BusinessItemSummary[]);
+      setItems(
+        MOCK_ITEMS.slice(
+          (p - 1) * ps,
+          p * ps,
+        ) as unknown as BusinessItemSummary[],
+      );
       setLoading(false);
       return;
     }
@@ -84,7 +109,7 @@ export default function ItemList() {
 
   const openCreate = () => {
     setEditingItem(null);
-    setForm(emptyForm);
+    setForm({ ...emptyForm, taxCategories: [{ ...defaultTaxEntry }] });
     setShowForm(true);
   };
 
@@ -197,7 +222,7 @@ export default function ItemList() {
   return (
     <>
       <PageMeta
-        title="Items | Aegis NRS Portal"
+        title="Items | Aegis EInvoicing Portal"
         description="Manage business items and products"
       />
 
@@ -253,6 +278,8 @@ export default function ItemList() {
                   setForm((f) => ({
                     ...f,
                     itemType: e.target.value as "Goods" | "Service",
+                    // reset code when switching type
+                    serviceCode: { code: "", name: "" },
                   }))
                 }
                 className={inputCls}
@@ -264,36 +291,46 @@ export default function ItemList() {
             </div>
             <div className="flex flex-col gap-1">
               <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                Service/Product Code *
+                {form.itemType === "Service" ? "Service Code" : "Product Code"}{" "}
+                *
               </label>
-              <input
+              <select
                 value={form.serviceCode.code}
-                onChange={(e) =>
+                onChange={(e) => {
+                  const codes =
+                    form.itemType === "Service" ? serviceCodes : productCodes;
+                  const selected = codes.find((c) => c.code === e.target.value);
                   setForm((f) => ({
                     ...f,
-                    serviceCode: { ...f.serviceCode, code: e.target.value },
-                  }))
-                }
+                    serviceCode: {
+                      code: e.target.value,
+                      name: selected?.description ?? "",
+                    },
+                  }));
+                }}
                 className={inputCls}
-                placeholder="NRS code"
                 required
-              />
+              >
+                <option value="">— Select code —</option>
+                {(form.itemType === "Service"
+                  ? serviceCodes
+                  : productCodes
+                ).map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.code} — {c.description}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="flex flex-col gap-1">
               <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                Code Description *
+                Code Description
               </label>
               <input
                 value={form.serviceCode.name}
-                onChange={(e) =>
-                  setForm((f) => ({
-                    ...f,
-                    serviceCode: { ...f.serviceCode, name: e.target.value },
-                  }))
-                }
-                className={inputCls}
-                placeholder="Code description"
-                required
+                readOnly
+                className={`${inputCls} bg-gray-50 dark:bg-gray-700 cursor-default`}
+                placeholder="Auto-filled from selected code"
               />
             </div>
             <div className="flex flex-col gap-1">
@@ -358,11 +395,6 @@ export default function ItemList() {
                   + Add Tax Category
                 </button>
               </div>
-              {form.taxCategories.length === 0 && (
-                <p className="text-xs text-gray-400 dark:text-gray-500">
-                  No tax categories added.
-                </p>
-              )}
               {form.taxCategories.map((tc, idx) => (
                 <div
                   key={idx}
@@ -441,13 +473,15 @@ export default function ItemList() {
                     />
                   )}
 
-                  <button
-                    type="button"
-                    onClick={() => removeTaxEntry(idx)}
-                    className="text-red-500 hover:text-red-600 text-xs font-medium self-center"
-                  >
-                    Remove
-                  </button>
+                  {form.taxCategories.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeTaxEntry(idx)}
+                      className="text-red-500 hover:text-red-600 text-xs font-medium self-center"
+                    >
+                      Remove
+                    </button>
+                  )}
                 </div>
               ))}
             </div>

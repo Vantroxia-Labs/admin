@@ -227,7 +227,7 @@ export default function InvoiceDetail() {
   return (
     <>
       <PageMeta
-        title={`Invoice ${invoice.invoiceCode} | Aegis NRS Portal`}
+        title={`Invoice ${invoice.invoiceCode} | Aegis EInvoicing Portal`}
         description="Invoice detail view"
       />
 

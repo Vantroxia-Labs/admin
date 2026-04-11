@@ -4,10 +4,10 @@ import PageMeta from "../../components/common/PageMeta";
 import { invoiceApi, type InvoiceSummary } from "../../lib/api";
 import { USE_MOCK, MOCK_RECEIVED_INVOICES } from "../../lib/mockData";
 
-
 const PAY_STATUS_COLORS: Record<string, string> = {
   PAID: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-  PENDING: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+  PENDING:
+    "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
   REJECTED: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
   CANCELLED: "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400",
   FAILED: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
@@ -25,7 +25,9 @@ export default function ReceivedInvoiceList() {
     if (USE_MOCK) {
       setTotalCount(MOCK_RECEIVED_INVOICES.length);
       setTotalPages(Math.ceil(MOCK_RECEIVED_INVOICES.length / ps));
-      setInvoices(MOCK_RECEIVED_INVOICES.slice((p - 1) * ps, p * ps) as InvoiceSummary[]);
+      setInvoices(
+        MOCK_RECEIVED_INVOICES.slice((p - 1) * ps, p * ps) as InvoiceSummary[],
+      );
       setLoading(false);
       return;
     }
@@ -52,12 +54,14 @@ export default function ReceivedInvoiceList() {
   return (
     <>
       <PageMeta
-        title="Received Invoices | Aegis NRS Portal"
+        title="Received Invoices | Aegis EInvoicing Portal"
         description="View invoices received from trading partners"
       />
 
       <div className="mb-6">
-        <h1 className="text-xl font-semibold text-gray-800 dark:text-white">Received Invoices</h1>
+        <h1 className="text-xl font-semibold text-gray-800 dark:text-white">
+          Received Invoices
+        </h1>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
           Invoices received from your trading partners via NRS NRS
         </p>
@@ -67,13 +71,17 @@ export default function ReceivedInvoiceList() {
         {/* Table toolbar */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            {totalCount > 0 ? `${totalCount} invoice${totalCount !== 1 ? "s" : ""}` : ""}
+            {totalCount > 0
+              ? `${totalCount} invoice${totalCount !== 1 ? "s" : ""}`
+              : ""}
           </p>
           <div className="flex items-center gap-2">
-            <label className="text-xs text-gray-500 dark:text-gray-400">Rows</label>
+            <label className="text-xs text-gray-500 dark:text-gray-400">
+              Rows
+            </label>
             <select
               value={pageSize}
-              onChange={e => handlePageSizeChange(Number(e.target.value))}
+              onChange={(e) => handlePageSizeChange(Number(e.target.value))}
               className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg text-xs bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500"
             >
               <option value={10}>10</option>
@@ -89,19 +97,33 @@ export default function ReceivedInvoiceList() {
           </div>
         ) : invoices.length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-gray-500 dark:text-gray-400">No received invoices found.</p>
+            <p className="text-gray-500 dark:text-gray-400">
+              No received invoices found.
+            </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/40">
-                  <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">Invoice</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">Sender</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">Date</th>
-                  <th className="px-4 py-3 text-right font-medium text-gray-500 dark:text-gray-400">Amount</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">Payment Status</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">IRN</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
+                    Invoice
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
+                    Sender
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
+                    Date
+                  </th>
+                  <th className="px-4 py-3 text-right font-medium text-gray-500 dark:text-gray-400">
+                    Amount
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
+                    Payment Status
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
+                    IRN
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
@@ -129,7 +151,8 @@ export default function ReceivedInvoiceList() {
                     <td className="px-4 py-3">
                       <span
                         className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
-                          PAY_STATUS_COLORS[inv.paymentStatus] ?? "bg-gray-100 text-gray-600"
+                          PAY_STATUS_COLORS[inv.paymentStatus] ??
+                          "bg-gray-100 text-gray-600"
                         }`}
                       >
                         {inv.paymentStatus}
@@ -146,7 +169,9 @@ export default function ReceivedInvoiceList() {
         )}
 
         <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Page {page} of {totalPages}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Page {page} of {totalPages}
+          </p>
           <div className="flex gap-2">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}

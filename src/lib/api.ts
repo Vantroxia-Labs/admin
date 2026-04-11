@@ -747,21 +747,20 @@ export interface AnalyticsV2Result {
 
 // ── APP Provider Management (AegisAdmin) ─────────────────────────────────────
 
-/** Mirrors AppVendor enum on the backend */
-export type AppVendor = 1 | 2 | 3 | 4; // Interswitch | Digitax | Etranzact | BlueBridge
-
-export const APP_VENDOR_LABELS: Record<AppVendor, string> = {
-  1: "Interswitch",
-  2: "Digitax",
-  3: "eTranzact",
-  4: "BlueBridge",
-};
+/** An adapter option returned by GET /access-point-providers/adapter-options. */
+export interface AppAdapterOption {
+  adapterKey: string;
+  displayName: string;
+}
 
 export interface AccessPointProviderDto {
   id: string;
   name: string;
   description?: string;
-  vendor: AppVendor;
+  /** Lowercase stable key matching the backend adapter, e.g. "interswitch". */
+  adapterKey: string;
+  /** Human-readable display name from the registered adapter, e.g. "Interswitch". */
+  displayName: string;
   baseUrl: string;
   hasProductionCredentials: boolean;
   sandboxBaseUrl?: string;
@@ -773,9 +772,9 @@ export interface AccessPointProviderDto {
 export interface CreateAppProviderPayload {
   name: string;
   description?: string;
-  vendor: AppVendor;
+  adapterKey: string;
   baseUrl: string;
-  /** Plaintext JSON blob — shape is vendor-specific, encrypted server-side */
+  /** Plaintext JSON blob — shape is adapter-specific, encrypted server-side */
   credentialsJson?: string;
   sandboxBaseUrl?: string;
   sandboxCredentialsJson?: string;
@@ -795,11 +794,17 @@ export interface UpdateAppProviderPayload {
 export type AppEnvironmentMode = 1 | 2;
 
 export interface BusinessAppSettingsDto {
-  activeVendor: AppVendor | null;
+  /** The adapter key the business has selected, or null for the platform default. */
+  activeAdapterKey: string | null;
   environmentMode: AppEnvironmentMode;
 }
 
 export const appProviderApi = {
+  getAdapterOptions: () =>
+    api
+      .get<ApiResponse<AppAdapterOption[]>>("/access-point-providers/adapter-options")
+      .then(unwrap),
+
   list: (page = 1, pageSize = 20) =>
     api
       .get<ApiResponse<PaginatedResult<AccessPointProviderDto>>>(
@@ -838,11 +843,11 @@ export const appProviderApi = {
       >(`/access-point-providers/businesses/${businessId}/settings`)
       .then(unwrap),
 
-  setBusinessProvider: (businessId: string, vendor: AppVendor | null) =>
+  setBusinessProvider: (businessId: string, adapterKey: string | null) =>
     api
       .patch<
         ApiResponse<{ isSuccess: boolean; message: string }>
-      >(`/access-point-providers/businesses/${businessId}/provider`, { vendor })
+      >(`/access-point-providers/businesses/${businessId}/provider`, { adapterKey })
       .then(unwrap),
 
   setBusinessEnvironment: (businessId: string, environmentMode: 1 | 2) =>

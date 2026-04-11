@@ -9,7 +9,7 @@ import {
   businessItemApi,
   NRSApi,
   type Party,
-  type BusinessItem,
+  type BusinessItemSummary,
   type TaxCategory,
   type CreateInvoicePayload,
   type InvoiceItemPayload,
@@ -85,7 +85,7 @@ function InfoTooltip({ text }: { text: string }) {
 export default function CreateInvoice() {
   const navigate = useNavigate();
   const [parties, setParties] = useState<Party[]>([]);
-  const [items, setItems] = useState<BusinessItem[]>([]);
+  const [items, setItems] = useState<BusinessItemSummary[]>([]);
   const [taxCategories, setTaxCategories] = useState<TaxCategory[]>([]);
   const [invoices, setInvoices] = useState<InvoiceSummary[]>([]);
   const [loadingLookups, setLoadingLookups] = useState(true);
@@ -142,7 +142,7 @@ export default function CreateInvoice() {
   useEffect(() => {
     if (USE_MOCK) {
       setParties(MOCK_PARTIES as Party[]);
-      setItems(MOCK_ITEMS as BusinessItem[]);
+      setItems(MOCK_ITEMS as unknown as BusinessItemSummary[]);
       setTaxCategories(MOCK_TAX_CATEGORIES as TaxCategory[]);
       setInvoices(MOCK_INVOICES as InvoiceSummary[]);
       setLoadingLookups(false);
@@ -216,25 +216,49 @@ export default function CreateInvoice() {
       [key]: (prev[key] as DocumentReferenceDto[]).filter((r) => r.irn !== irn),
     }));
 
-  const handleItemSelect = (index: number, businessItemId: string) => {
-    const selected = items.find((i) => i.id === businessItemId);
-    const taxCode = selected?.taxCategories?.[0] ?? "";
+  const handleItemSelect = async (index: number, businessItemId: string) => {
+    // First update with summary data so the UI responds immediately
+    const summary = items.find((i) => i.id === businessItemId);
     setLineItems((prev) =>
       prev.map((li, i) =>
         i === index
           ? {
               ...li,
               businessItemId,
-              unitPrice: selected?.unitPrice ?? 0,
-              _description: selected?.description ?? "",
-              _itemCode: selected?.itemCode ?? "",
-              _taxCategoryCode: taxCode,
+              unitPrice: summary?.unitPrice ?? 0,
+              _description: "",
+              _itemCode: summary?.itemId ?? "",
+              _taxCategoryCode: "",
               lineDiscount: 0,
               _discountPercent: 0,
             }
           : li,
       ),
     );
+
+    if (!businessItemId) return;
+
+    // Fetch full item to get taxCategories and itemDescription
+    try {
+      const full = USE_MOCK
+        ? null
+        : await businessItemApi.getById(businessItemId);
+      const taxCode = full?.taxCategories?.[0]?.code ?? "";
+      setLineItems((prev) =>
+        prev.map((li, i) =>
+          i === index
+            ? {
+                ...li,
+                _description: full?.itemDescription ?? summary?.name ?? "",
+                _itemCode: full?.itemId ?? summary?.itemId ?? "",
+                _taxCategoryCode: taxCode,
+              }
+            : li,
+        ),
+      );
+    } catch {
+      // leave description/taxCode empty — user can fill manually
+    }
   };
 
   const handleLineChange = (
@@ -460,7 +484,7 @@ export default function CreateInvoice() {
   return (
     <>
       <PageMeta
-        title="Create Invoice | Aegis NRS Portal"
+        title="Create Invoice | Aegis EInvoicing Portal"
         description="Create a new e-invoice"
       />
 
@@ -920,7 +944,7 @@ export default function CreateInvoice() {
                       <option value="">Select item...</option>
                       {items.map((it) => (
                         <option key={it.id} value={it.id}>
-                          {it.itemCode} — {it.description}
+                          {it.itemId} — {it.name}
                         </option>
                       ))}
                     </select>

@@ -3,11 +3,10 @@ import toast from "react-hot-toast";
 import PageMeta from "../../components/common/PageMeta";
 import {
   appProviderApi,
-  APP_VENDOR_LABELS,
   type AccessPointProviderDto,
+  type AppAdapterOption,
   type CreateAppProviderPayload,
   type UpdateAppProviderPayload,
-  type AppVendor,
 } from "../../lib/api";
 import { useIsAegis } from "../../context/AuthContext";
 
@@ -91,16 +90,24 @@ function ModalFooter({
 
 // ── Create Modal ──────────────────────────────────────────────────────────────
 function CreateModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
+  const [adapterOptions, setAdapterOptions] = useState<AppAdapterOption[]>([]);
   const [form, setForm] = useState<CreateAppProviderPayload>({
     name: "",
     description: "",
-    vendor: 1,
+    adapterKey: "",
     baseUrl: "",
     credentialsJson: "",
     sandboxBaseUrl: "",
     sandboxCredentialsJson: "",
   });
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    appProviderApi.getAdapterOptions().then((opts) => {
+      setAdapterOptions(opts);
+      if (opts.length > 0) setForm((f) => ({ ...f, adapterKey: opts[0].adapterKey }));
+    }).catch(() => {});
+  }, []);
 
   const set = <K extends keyof CreateAppProviderPayload>(key: K, val: CreateAppProviderPayload[K]) =>
     setForm((f) => ({ ...f, [key]: val }));
@@ -130,16 +137,16 @@ function CreateModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =>
           <div className="grid grid-cols-1 gap-4">
             <div className="flex flex-col gap-1">
               <label className={labelCls}>
-                Vendor <span className="text-red-500">*</span>
+                Adapter <span className="text-red-500">*</span>
               </label>
               <select
                 className={inputCls}
-                value={form.vendor}
-                onChange={(e) => set("vendor", Number(e.target.value) as AppVendor)}
+                value={form.adapterKey}
+                onChange={(e) => set("adapterKey", e.target.value)}
               >
-                {(Object.entries(APP_VENDOR_LABELS) as [string, string][]).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
+                {adapterOptions.map((o) => (
+                  <option key={o.adapterKey} value={o.adapterKey}>
+                    {o.displayName}
                   </option>
                 ))}
               </select>
@@ -270,9 +277,9 @@ function EditModal({
   };
 
   return (
-    <ModalShell title={`Edit — ${APP_VENDOR_LABELS[provider.vendor]}`} onClose={onClose}>
+    <ModalShell title={`Edit — ${provider.displayName}`} onClose={onClose}>
       <p className="text-xs text-gray-500 dark:text-gray-400 -mt-1 mb-4">
-        Vendor cannot be changed. Leave credential fields blank to keep existing values.
+        Adapter cannot be changed. Leave credential fields blank to keep existing values.
       </p>
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         <Section title="Identity">
@@ -474,7 +481,7 @@ export default function AppProviderList() {
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead className="bg-gray-50 dark:bg-gray-800">
                 <tr>
-                  {["Vendor", "Name", "Base URL", "Credentials", "Status", ""].map((h) => (
+                  {["Provider", "Name", "Base URL", "Credentials", "Status", ""].map((h) => (
                     <th
                       key={h}
                       className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
@@ -492,7 +499,7 @@ export default function AppProviderList() {
                   >
                     <td className="px-4 py-3">
                       <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400">
-                        {APP_VENDOR_LABELS[p.vendor]}
+                        {p.displayName}
                       </span>
                     </td>
                     <td className="px-4 py-3">

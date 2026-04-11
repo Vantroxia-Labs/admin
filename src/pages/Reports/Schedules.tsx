@@ -285,7 +285,7 @@ export default function Schedules() {
   return (
     <>
       <PageMeta
-        title="VAT Schedule | Aegis NRS Portal"
+        title="VAT Schedule | Aegis EInvoicing Portal"
         description="Monthly VAT filing schedule"
       />
 

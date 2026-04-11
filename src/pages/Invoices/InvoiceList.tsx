@@ -353,7 +353,7 @@ export default function InvoiceList() {
   return (
     <>
       <PageMeta
-        title="Invoices | Aegis NRS Portal"
+        title="Invoices | Aegis EInvoicing Portal"
         description="Manage your invoices"
       />
 

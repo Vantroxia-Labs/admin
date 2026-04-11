@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import PageMeta from "../../components/common/PageMeta";
-import { userMgmtApi, type UserSummary, type CreateUserPayload } from "../../lib/api";
+import {
+  userMgmtApi,
+  type UserSummary,
+  type CreateUserPayload,
+} from "../../lib/api";
 import { USE_MOCK, MOCK_USERS } from "../../lib/mockData";
 import { useIsAdmin, useIsAegis } from "../../context/AuthContext";
 
@@ -9,7 +13,8 @@ const inputCls =
   "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500";
 
 const STATUS_COLORS: Record<string, string> = {
-  Active: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+  Active:
+    "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
   Inactive: "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300",
   Suspended: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
 };
@@ -82,7 +87,9 @@ export default function UserList() {
     setSaving(true);
     try {
       await userMgmtApi.create(form);
-      toast.success("User created. They will receive a temporary password by email.");
+      toast.success(
+        "User created. They will receive a temporary password by email.",
+      );
       setShowForm(false);
       setForm(emptyForm);
       load();
@@ -112,7 +119,10 @@ export default function UserList() {
   };
 
   const handleResetPassword = async (user: UserSummary) => {
-    if (!window.confirm(`Reset password for ${user.NRStName} ${user.lastName}?`)) return;
+    if (
+      !window.confirm(`Reset password for ${user.NRStName} ${user.lastName}?`)
+    )
+      return;
     setActioning(user.id);
     try {
       await userMgmtApi.resetPassword(user.id);
@@ -126,11 +136,16 @@ export default function UserList() {
 
   return (
     <>
-      <PageMeta title="Users | Aegis NRS Portal" description="Manage portal users" />
+      <PageMeta
+        title="Users | Aegis EInvoicing Portal"
+        description="Manage portal users"
+      />
 
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-semibold text-gray-800 dark:text-white">Users</h1>
+          <h1 className="text-xl font-semibold text-gray-800 dark:text-white">
+            Users
+          </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
             Manage portal access and user roles
           </p>
@@ -150,7 +165,9 @@ export default function UserList() {
           onSubmit={handleCreate}
           className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-5 mb-6"
         >
-          <h2 className="text-base font-semibold text-gray-700 dark:text-white mb-4">Invite New User</h2>
+          <h2 className="text-base font-semibold text-gray-700 dark:text-white mb-4">
+            Invite New User
+          </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1">
               <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
@@ -158,7 +175,9 @@ export default function UserList() {
               </label>
               <input
                 value={form.NRStName}
-                onChange={(e) => setForm((f) => ({ ...f, NRStName: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, NRStName: e.target.value }))
+                }
                 className={inputCls}
                 placeholder="NRSt name"
                 required
@@ -170,17 +189,23 @@ export default function UserList() {
               </label>
               <input
                 value={form.lastName}
-                onChange={(e) => setForm((f) => ({ ...f, lastName: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, lastName: e.target.value }))
+                }
                 className={inputCls}
                 placeholder="Last name"
                 required
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Email *</label>
+              <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                Email *
+              </label>
               <input
                 value={form.email}
-                onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, email: e.target.value }))
+                }
                 className={inputCls}
                 placeholder="user@example.com"
                 type="email"
@@ -188,19 +213,27 @@ export default function UserList() {
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Phone</label>
+              <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                Phone
+              </label>
               <input
                 value={form.phoneNumber ?? ""}
-                onChange={(e) => setForm((f) => ({ ...f, phoneNumber: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, phoneNumber: e.target.value }))
+                }
                 className={inputCls}
                 placeholder="+234..."
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Role</label>
+              <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                Role
+              </label>
               <select
                 value={form.roleId}
-                onChange={(e) => setForm((f) => ({ ...f, roleId: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, roleId: e.target.value }))
+                }
                 className={inputCls}
               >
                 {ROLE_OPTIONS.map((r) => (
@@ -234,13 +267,17 @@ export default function UserList() {
         {/* Table toolbar */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            {allUsers.length > 0 ? `${allUsers.length} user${allUsers.length !== 1 ? "s" : ""}` : ""}
+            {allUsers.length > 0
+              ? `${allUsers.length} user${allUsers.length !== 1 ? "s" : ""}`
+              : ""}
           </p>
           <div className="flex items-center gap-2">
-            <label className="text-xs text-gray-500 dark:text-gray-400">Rows</label>
+            <label className="text-xs text-gray-500 dark:text-gray-400">
+              Rows
+            </label>
             <select
               value={pageSize}
-              onChange={e => handlePageSizeChange(Number(e.target.value))}
+              onChange={(e) => handlePageSizeChange(Number(e.target.value))}
               className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg text-xs bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500"
             >
               <option value={10}>10</option>
@@ -256,7 +293,9 @@ export default function UserList() {
           </div>
         ) : users.length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-gray-500 dark:text-gray-400 mb-3">No users found.</p>
+            <p className="text-gray-500 dark:text-gray-400 mb-3">
+              No users found.
+            </p>
             {canManage && (
               <button
                 onClick={() => setShowForm(true)}
@@ -271,10 +310,18 @@ export default function UserList() {
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead className="bg-gray-50 dark:bg-gray-800">
                 <tr>
-                  <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">Name</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">Email</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">Roles</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">Status</th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
+                    Name
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
+                    Email
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
+                    Roles
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
+                    Status
+                  </th>
                   <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
                     Last Login
                   </th>
@@ -294,7 +341,9 @@ export default function UserList() {
                     <td className="px-4 py-3 font-medium text-gray-800 dark:text-white">
                       {u.NRStName} {u.lastName}
                     </td>
-                    <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{u.email}</td>
+                    <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
+                      {u.email}
+                    </td>
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap gap-1">
                         {u.roles.map((role) => (
@@ -357,7 +406,9 @@ export default function UserList() {
         )}
 
         <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Page {page} of {totalPages}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Page {page} of {totalPages}
+          </p>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}

@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import PageMeta from "../../components/common/PageMeta";
-import { partyApi, tinValidationApi, type Party, type CreatePartyPayload } from "../../lib/api";
+import {
+  partyApi,
+  tinValidationApi,
+  type Party,
+  type CreatePartyPayload,
+} from "../../lib/api";
 import { USE_MOCK, MOCK_PARTIES } from "../../lib/mockData";
 import { useIsAdmin, useIsAegis } from "../../context/AuthContext";
 
@@ -47,7 +52,11 @@ export default function PartyList() {
 
   useEffect(() => {
     const tin = form.taxIdentificationNumber.trim();
-    if (!tin) { setTinStatus("idle"); setTinBusinessName(""); return; }
+    if (!tin) {
+      setTinStatus("idle");
+      setTinBusinessName("");
+      return;
+    }
     setTinStatus("checking");
     const timer = setTimeout(async () => {
       if (USE_MOCK) {
@@ -132,11 +141,22 @@ export default function PartyList() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name || !form.taxIdentificationNumber || !form.email || !form.phone || !form.description) {
+    if (
+      !form.name ||
+      !form.taxIdentificationNumber ||
+      !form.email ||
+      !form.phone ||
+      !form.description
+    ) {
       toast.error("Please fill in all required fields.");
       return;
     }
-    if (!form.address.street || !form.address.city || !form.address.state || !form.address.country) {
+    if (
+      !form.address.street ||
+      !form.address.city ||
+      !form.address.state ||
+      !form.address.country
+    ) {
       toast.error("Street, City, State and Country are required.");
       return;
     }
@@ -162,7 +182,9 @@ export default function PartyList() {
       handleCancelForm();
       load(page, pageSize);
     } catch {
-      toast.error(editingParty ? "Failed to update party." : "Failed to create party.");
+      toast.error(
+        editingParty ? "Failed to update party." : "Failed to create party.",
+      );
     } finally {
       setSaving(false);
     }
@@ -181,11 +203,16 @@ export default function PartyList() {
 
   return (
     <>
-      <PageMeta title="Parties | Aegis NRS Portal" description="Manage trading parties" />
+      <PageMeta
+        title="Parties | Aegis EInvoicing Portal"
+        description="Manage trading parties"
+      />
 
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-semibold text-gray-800 dark:text-white">Parties</h1>
+          <h1 className="text-xl font-semibold text-gray-800 dark:text-white">
+            Parties
+          </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
             Manage your suppliers and customers
           </p>
@@ -210,24 +237,41 @@ export default function PartyList() {
           </h2>
 
           {/* Core info */}
-          <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-3">Basic Information</p>
+          <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-3">
+            Basic Information
+          </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Business Name *</label>
+              <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                Business Name *
+              </label>
               <input
                 value={form.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, name: e.target.value }))
+                }
                 className={inputCls}
                 placeholder="e.g. Acme Ltd"
                 required
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Tax Identification Number (TIN) *</label>
+              <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                Tax Identification Number (TIN) *
+              </label>
               <input
                 value={form.taxIdentificationNumber}
-                onChange={(e) => setForm((f) => ({ ...f, taxIdentificationNumber: e.target.value }))}
-                className={editingParty ? `${inputCls} opacity-60 cursor-not-allowed` : inputCls}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    taxIdentificationNumber: e.target.value,
+                  }))
+                }
+                className={
+                  editingParty
+                    ? `${inputCls} opacity-60 cursor-not-allowed`
+                    : inputCls
+                }
                 placeholder="e.g. 12345678-0001"
                 readOnly={!!editingParty}
                 required
@@ -244,17 +288,25 @@ export default function PartyList() {
                 </p>
               )}
               {tinStatus === "invalid" && (
-                <p className="text-xs text-red-500 mt-1">✕ TIN not found or not enrolled on NRS</p>
+                <p className="text-xs text-red-500 mt-1">
+                  ✕ TIN not found or not enrolled on NRS
+                </p>
               )}
               {tinStatus === "error" && (
-                <p className="text-xs text-orange-500 mt-1">⚠ Could not verify TIN right now. Please try again.</p>
+                <p className="text-xs text-orange-500 mt-1">
+                  ⚠ Could not verify TIN right now. Please try again.
+                </p>
               )}
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Email *</label>
+              <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                Email *
+              </label>
               <input
                 value={form.email}
-                onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, email: e.target.value }))
+                }
                 className={inputCls}
                 placeholder="contact@party.com"
                 type="email"
@@ -262,20 +314,28 @@ export default function PartyList() {
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Phone *</label>
+              <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                Phone *
+              </label>
               <input
                 value={form.phone}
-                onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, phone: e.target.value }))
+                }
                 className={inputCls}
                 placeholder="+234..."
                 required
               />
             </div>
             <div className="flex flex-col gap-1 sm:col-span-2">
-              <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Description *</label>
+              <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                Description *
+              </label>
               <textarea
                 value={form.description}
-                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, description: e.target.value }))
+                }
                 className={`${inputCls} resize-none`}
                 placeholder="Brief description of this party"
                 rows={2}
@@ -285,53 +345,90 @@ export default function PartyList() {
           </div>
 
           {/* Address */}
-          <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-3">Address</p>
+          <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-3">
+            Address
+          </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1 sm:col-span-2">
-              <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Street *</label>
+              <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                Street *
+              </label>
               <input
                 value={form.address.street}
-                onChange={(e) => setForm((f) => ({ ...f, address: { ...f.address, street: e.target.value } }))}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    address: { ...f.address, street: e.target.value },
+                  }))
+                }
                 className={inputCls}
                 placeholder="123 Main Street"
                 required
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-gray-500 dark:text-gray-400">City *</label>
+              <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                City *
+              </label>
               <input
                 value={form.address.city}
-                onChange={(e) => setForm((f) => ({ ...f, address: { ...f.address, city: e.target.value } }))}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    address: { ...f.address, city: e.target.value },
+                  }))
+                }
                 className={inputCls}
                 placeholder="Lagos"
                 required
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-gray-500 dark:text-gray-400">State *</label>
+              <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                State *
+              </label>
               <input
                 value={form.address.state}
-                onChange={(e) => setForm((f) => ({ ...f, address: { ...f.address, state: e.target.value } }))}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    address: { ...f.address, state: e.target.value },
+                  }))
+                }
                 className={inputCls}
                 placeholder="Lagos"
                 required
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Country *</label>
+              <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                Country *
+              </label>
               <input
                 value={form.address.country}
-                onChange={(e) => setForm((f) => ({ ...f, address: { ...f.address, country: e.target.value } }))}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    address: { ...f.address, country: e.target.value },
+                  }))
+                }
                 className={inputCls}
                 placeholder="Nigeria"
                 required
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-gray-500 dark:text-gray-400">Postal Code</label>
+              <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                Postal Code
+              </label>
               <input
                 value={form.address.postalCode ?? ""}
-                onChange={(e) => setForm((f) => ({ ...f, address: { ...f.address, postalCode: e.target.value } }))}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    address: { ...f.address, postalCode: e.target.value },
+                  }))
+                }
                 className={inputCls}
                 placeholder="100001"
               />
@@ -350,7 +447,11 @@ export default function PartyList() {
               disabled={saving}
               className="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white text-sm rounded-xl disabled:opacity-50 transition-colors"
             >
-              {saving ? "Saving…" : editingParty ? "Update Party" : "Create Party"}
+              {saving
+                ? "Saving…"
+                : editingParty
+                  ? "Update Party"
+                  : "Create Party"}
             </button>
           </div>
         </form>
@@ -360,13 +461,17 @@ export default function PartyList() {
         {/* Table toolbar */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            {totalCount > 0 ? `${totalCount} part${totalCount !== 1 ? "ies" : "y"}` : ""}
+            {totalCount > 0
+              ? `${totalCount} part${totalCount !== 1 ? "ies" : "y"}`
+              : ""}
           </p>
           <div className="flex items-center gap-2">
-            <label className="text-xs text-gray-500 dark:text-gray-400">Rows</label>
+            <label className="text-xs text-gray-500 dark:text-gray-400">
+              Rows
+            </label>
             <select
               value={pageSize}
-              onChange={e => handlePageSizeChange(Number(e.target.value))}
+              onChange={(e) => handlePageSizeChange(Number(e.target.value))}
               className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg text-xs bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500"
             >
               <option value={10}>10</option>
@@ -382,7 +487,9 @@ export default function PartyList() {
           </div>
         ) : parties.length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-gray-500 dark:text-gray-400 mb-3">No parties found.</p>
+            <p className="text-gray-500 dark:text-gray-400 mb-3">
+              No parties found.
+            </p>
             {canManage && (
               <button
                 onClick={() => setShowForm(true)}
@@ -394,80 +501,92 @@ export default function PartyList() {
           </div>
         ) : (
           <>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className="bg-gray-50 dark:bg-gray-800">
-                <tr>
-                  <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">Name</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">TIN</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">Email</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">Phone</th>
-                  {canManage && (
-                    <th className="px-4 py-3 text-right font-medium text-gray-500 dark:text-gray-400">
-                      Actions
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead className="bg-gray-50 dark:bg-gray-800">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
+                      Name
                     </th>
-                  )}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {parties.map((p) => (
-                  <tr
-                    key={p.id}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors"
-                  >
-                    <td className="px-4 py-3 font-medium text-gray-800 dark:text-white">{p.name}</td>
-                    <td className="px-4 py-3 text-gray-600 dark:text-gray-300 font-mono text-xs">
-                      {p.taxIdentificationNumber}
-                    </td>
-                    <td className="px-4 py-3 text-gray-500 dark:text-gray-400">
-                      {p.email}
-                    </td>
-                    <td className="px-4 py-3 text-gray-500 dark:text-gray-400">
-                      {p.phone}
-                    </td>
+                    <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
+                      TIN
+                    </th>
+                    <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
+                      Email
+                    </th>
+                    <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
+                      Phone
+                    </th>
                     {canManage && (
-                      <td className="px-4 py-3 text-right">
-                        <div className="flex items-center justify-end gap-3">
-                          <button
-                            onClick={() => handleEdit(p)}
-                            className="text-brand-500 hover:text-brand-600 text-xs font-medium"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDelete(p.id, p.name)}
-                            className="text-red-500 hover:text-red-600 text-xs font-medium"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
+                      <th className="px-4 py-3 text-right font-medium text-gray-500 dark:text-gray-400">
+                        Actions
+                      </th>
                     )}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-700">
-            <p className="text-sm text-gray-500 dark:text-gray-400">Page {page} of {totalPages}</p>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors"
-              >
-                Previous
-              </button>
-              <button
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-                className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors"
-              >
-                Next
-              </button>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                  {parties.map((p) => (
+                    <tr
+                      key={p.id}
+                      className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors"
+                    >
+                      <td className="px-4 py-3 font-medium text-gray-800 dark:text-white">
+                        {p.name}
+                      </td>
+                      <td className="px-4 py-3 text-gray-600 dark:text-gray-300 font-mono text-xs">
+                        {p.taxIdentificationNumber}
+                      </td>
+                      <td className="px-4 py-3 text-gray-500 dark:text-gray-400">
+                        {p.email}
+                      </td>
+                      <td className="px-4 py-3 text-gray-500 dark:text-gray-400">
+                        {p.phone}
+                      </td>
+                      {canManage && (
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex items-center justify-end gap-3">
+                            <button
+                              onClick={() => handleEdit(p)}
+                              className="text-brand-500 hover:text-brand-600 text-xs font-medium"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDelete(p.id, p.name)}
+                              className="text-red-500 hover:text-red-600 text-xs font-medium"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          </div>
+
+            <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-700">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Page {page} of {totalPages}
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors"
+                >
+                  Previous
+                </button>
+                <button
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
           </>
         )}
       </div>
