@@ -36,6 +36,12 @@ const INVOICE_TYPES = [
   { code: "388", label: "Tax Invoice (388)" },
 ];
 
+const INVOICE_KINDS = [
+  { code: "B2B", label: "B2B — Business to Business" },
+  { code: "B2C", label: "B2C — Business to Consumer" },
+  { code: "B2G", label: "B2G — Business to Government" },
+];
+
 const PAYMENT_MEANS = [
   { code: "10", label: "Cash (10)" },
   { code: "20", label: "Cheque (20)" },
@@ -104,6 +110,7 @@ export default function CreateInvoice() {
     dueDate: "",
     currencyCode: "NGN",
     invoiceTypeCode: "380",
+    invoiceKind: "B2B",
     paymentMeansCode: "30",
     note: "",
     orderReference: "",
@@ -240,19 +247,26 @@ export default function CreateInvoice() {
 
     // Fetch full item to get taxCategories and itemDescription
     try {
-      const full = USE_MOCK
-        ? null
-        : await businessItemApi.getById(businessItemId);
-      const taxCode = full?.taxCategories?.[0]?.code ?? "";
+      let itemDescription: string;
+      let itemCode: string;
+      let taxCode: string;
+
+      if (USE_MOCK) {
+        const mockFull = MOCK_ITEMS.find((m) => m.id === businessItemId);
+        itemDescription = mockFull?.itemDescription ?? summary?.name ?? "";
+        itemCode = mockFull?.itemId ?? summary?.itemId ?? "";
+        taxCode = mockFull?.taxCategories?.[0]?.code ?? "";
+      } else {
+        const full = await businessItemApi.getById(businessItemId);
+        itemDescription = full?.itemDescription ?? summary?.name ?? "";
+        itemCode = full?.itemId ?? summary?.itemId ?? "";
+        taxCode = full?.taxCategories?.[0]?.code ?? "";
+      }
+
       setLineItems((prev) =>
         prev.map((li, i) =>
           i === index
-            ? {
-                ...li,
-                _description: full?.itemDescription ?? summary?.name ?? "",
-                _itemCode: full?.itemId ?? summary?.itemId ?? "",
-                _taxCategoryCode: taxCode,
-              }
+            ? { ...li, _description: itemDescription, _itemCode: itemCode, _taxCategoryCode: taxCode }
             : li,
         ),
       );
@@ -372,6 +386,7 @@ export default function CreateInvoice() {
       dueDate: form.dueDate || undefined,
       currencyCode: form.currencyCode,
       invoiceTypeCode: form.invoiceTypeCode,
+      invoiceKind: form.invoiceKind || undefined,
       paymentMeansCode: form.paymentMeansCode || undefined,
       note: form.note || undefined,
       orderReference: form.orderReference || undefined,
@@ -548,6 +563,24 @@ export default function CreateInvoice() {
                   </a>
                 </p>
               )}
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                Invoice Kind <span className="text-error-500">*</span>
+                <InfoTooltip text="B2B: selling to another business. B2C: selling to an individual consumer. B2G: selling to a government entity." />
+              </label>
+              <select
+                value={form.invoiceKind}
+                onChange={handleFieldChange("invoiceKind")}
+                className={inputCls}
+              >
+                {INVOICE_KINDS.map((k) => (
+                  <option key={k.code} value={k.code}>
+                    {k.label}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
@@ -1057,7 +1090,9 @@ export default function CreateInvoice() {
                     <span
                       className={`text-xs font-medium ${taxRate > 0 ? "text-amber-600 dark:text-amber-400" : "text-gray-400"}`}
                     >
-                      {taxRate > 0
+                      {!li.businessItemId
+                        ? "—"
+                        : taxRate > 0
                         ? `₦${tax.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
                         : "Exempt"}
                     </span>

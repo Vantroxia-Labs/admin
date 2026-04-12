@@ -25,6 +25,91 @@ import {
 } from "../../lib/mockData";
 
 // ─── Reusable Stat Card ──────────────────────────────────────────────────────
+// ─── Date Range Filter ───────────────────────────────────────────────────────
+function DateRangeFilter({
+  from,
+  to,
+  onChange,
+}: {
+  from: string;
+  to: string;
+  onChange: (from: string, to: string) => void;
+}) {
+  const today = new Date().toISOString().slice(0, 10);
+  const thisMonthStart = today.slice(0, 8) + "01";
+
+  const presets = [
+    { label: "This Month", from: thisMonthStart, to: today },
+    {
+      label: "Last 3 Months",
+      from: new Date(new Date().setMonth(new Date().getMonth() - 3))
+        .toISOString()
+        .slice(0, 10),
+      to: today,
+    },
+    {
+      label: "This Year",
+      from: today.slice(0, 5) + "01-01",
+      to: today,
+    },
+  ];
+
+  return (
+    <div className="flex flex-wrap items-center gap-3 mb-6">
+      <div className="flex items-center gap-2">
+        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+          From
+        </label>
+        <input
+          type="date"
+          value={from}
+          max={to || today}
+          onChange={(e) => onChange(e.target.value, to)}
+          className="px-3 py-1.5 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500"
+        />
+      </div>
+      <div className="flex items-center gap-2">
+        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+          To
+        </label>
+        <input
+          type="date"
+          value={to}
+          min={from}
+          max={today}
+          onChange={(e) => onChange(from, e.target.value)}
+          className="px-3 py-1.5 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500"
+        />
+      </div>
+      <div className="flex items-center gap-2">
+        {presets.map((p) => (
+          <button
+            key={p.label}
+            type="button"
+            onClick={() => onChange(p.from, p.to)}
+            className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
+              from === p.from && to === p.to
+                ? "bg-brand-500 text-white border-brand-500"
+                : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+            }`}
+          >
+            {p.label}
+          </button>
+        ))}
+        {(from || to) && (
+          <button
+            type="button"
+            onClick={() => onChange("", "")}
+            className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+          >
+            Clear
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function StatCard({
   label,
   value,
@@ -380,11 +465,75 @@ export default function Home() {
     [],
   );
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
+
+  const handleExportPdf = () => {
+    setExporting(true);
+    import("../../lib/exportPdf").then(({ exportElementToPdf }) => {
+      exportElementToPdf(
+        "dashboard-print-area",
+        `Aegis Dashboard ${new Date().toLocaleDateString("en-NG")}`,
+      );
+      setTimeout(() => setExporting(false), 1000);
+    });
+  };
+
+  const _today = new Date().toISOString().slice(0, 10);
+  const _twelveMonthsAgo = new Date(
+    new Date().setFullYear(new Date().getFullYear() - 1),
+  )
+    .toISOString()
+    .slice(0, 10);
+  const [dateFrom, setDateFrom] = useState(_twelveMonthsAgo);
+  const [dateTo, setDateTo] = useState(_today);
 
   useEffect(() => {
     if (USE_MOCK) {
-      setStats(MOCK_DASHBOARD_STATS);
-      setRecentInvoices(MOCK_INVOICES.slice(0, 5) as InvoiceSummary[]);
+      const all = MOCK_INVOICES as InvoiceSummary[];
+      const invs =
+        dateFrom || dateTo
+          ? all.filter((inv) => {
+              if (dateFrom && inv.issueDate < dateFrom) return false;
+              if (dateTo && inv.issueDate > dateTo) return false;
+              return true;
+            })
+          : all;
+      const curMonth = new Date().toISOString().slice(0, 7);
+      const inMonth = invs.filter((i) => i.issueDate?.startsWith(curMonth));
+      setStats({
+        ...MOCK_DASHBOARD_STATS,
+        totalInvoices: invs.length,
+        totalInvoicesThisMonth: inMonth.length,
+        totalInvoiceValue: invs.reduce((s, i) => s + i.totalAmount, 0),
+        totalInvoiceValueThisMonth: inMonth.reduce(
+          (s, i) => s + i.totalAmount,
+          0,
+        ),
+        totalVatCollected: invs.reduce(
+          (s, i) => s + (i.totalTaxAmount ?? 0),
+          0,
+        ),
+        totalVatThisMonth: inMonth.reduce(
+          (s, i) => s + (i.totalTaxAmount ?? 0),
+          0,
+        ),
+        draftInvoices: invs.filter((i) => i.status === "DRAFT").length,
+        pendingApprovalInvoices: invs.filter(
+          (i) => i.status === "PENDING_APPROVAL",
+        ).length,
+        submittedToNRS: invs.filter((i) =>
+          ["SUBMITTED", "TRANSMITTED"].includes(i.status),
+        ).length,
+        confirmedByNRS: invs.filter((i) => i.status === "TRANSMITTED").length,
+        rejectedInvoices: invs.filter((i) => i.status === "REJECTED").length,
+        totalIRNsGenerated: invs.filter((i) => !!i.irn).length,
+        pendingIRNs: invs.filter((i) => i.status === "SUBMITTED").length,
+        paidInvoices: invs.filter((i) => i.paymentStatus === "PAID").length,
+        unpaidInvoices: invs.filter((i) => i.paymentStatus === "PENDING")
+          .length,
+        partiallyPaidInvoices: 0,
+      });
+      setRecentInvoices(invs.slice(0, 5));
       setRecentBusinesses(MOCK_BUSINESSES.slice(0, 5) as BusinessSummary[]);
       setLoading(false);
       return;
@@ -411,7 +560,8 @@ export default function Home() {
         setLoading(false);
       },
     );
-  }, [isAegis]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAegis, dateFrom, dateTo]);
 
   const displayName = user?.NRStName?.trim() || "there";
 
@@ -442,14 +592,30 @@ export default function Home() {
               : `${tier === "SaaS" ? "Portal" : tier === "SFTP" ? "SFTP" : tier === "ApiOnly" ? "API" : ""} plan · NRS e-invoicing portal`}
           </p>
         </div>
-        {canCreate && !isAegis && (
-          <Link
-            to="/invoices/create"
-            className="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium rounded-xl transition-colors"
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleExportPdf}
+            disabled={exporting || !stats}
+            className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm font-medium rounded-xl transition-colors disabled:opacity-50"
           >
-            + New Invoice
-          </Link>
-        )}
+            {exporting ? (
+              <span className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17v3a1 1 0 001 1h16a1 1 0 001-1v-3" />
+              </svg>
+            )}
+            Export PDF
+          </button>
+          {canCreate && !isAegis && (
+            <Link
+              to="/invoices/create"
+              className="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium rounded-xl transition-colors"
+            >
+              + New Invoice
+            </Link>
+          )}
+        </div>
       </div>
 
       {!stats && (
@@ -458,9 +624,45 @@ export default function Home() {
         </div>
       )}
 
+      <div id="dashboard-print-area">
       {/* ── AEGIS ADMIN VIEW ──────────────────────────────────────────────── */}
       {stats && isAegis && (
         <div className="space-y-6">
+          <DateRangeFilter
+            from={dateFrom}
+            to={dateTo}
+            onChange={(f, t) => {
+              setDateFrom(f);
+              setDateTo(t);
+            }}
+          />
+
+          {/* Platform Revenue Banner */}
+          <div className="bg-gradient-to-r from-brand-600 to-brand-500 rounded-2xl p-5 text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <p className="text-sm font-medium text-brand-100">
+                Platform Revenue
+              </p>
+              <p className="text-3xl font-bold mt-1">
+                ₦{stats.platformRevenueTotal.toLocaleString()}
+              </p>
+              <p className="text-sm text-brand-200 mt-0.5">
+                ₦{stats.platformRevenueThisMonth.toLocaleString()} this month
+              </p>
+            </div>
+            <div className="flex flex-col items-start sm:items-end gap-1">
+              <span className="text-xs font-medium bg-white/20 rounded-full px-3 py-1">
+                Subscription fees &amp; platform charges
+              </span>
+              <span className="text-xs text-brand-200">
+                {stats.saaSBusinesses +
+                  stats.sftpPlanBusinesses +
+                  stats.apiPlanBusinesses}{" "}
+                active paying businesses
+              </span>
+            </div>
+          </div>
+
           {/* Top KPIs */}
           <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
             <StatCard
@@ -687,6 +889,15 @@ export default function Home() {
       {/* ── CLIENT ADMIN / USER VIEW ──────────────────────────────────────── */}
       {stats && !isAegis && (
         <div className="space-y-6">
+          <DateRangeFilter
+            from={dateFrom}
+            to={dateTo}
+            onChange={(f, t) => {
+              setDateFrom(f);
+              setDateTo(t);
+            }}
+          />
+
           {/* Top KPIs */}
           <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
             <StatCard
@@ -839,6 +1050,7 @@ export default function Home() {
           </div>
         </div>
       )}
+      </div>{/* end #dashboard-print-area */}
     </>
   );
 }

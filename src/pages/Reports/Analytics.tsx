@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Chart from "react-apexcharts";
 import type { ApexOptions } from "apexcharts";
 import PageMeta from "../../components/common/PageMeta";
@@ -203,9 +203,116 @@ const CHART_BASE: ApexOptions = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+function DateRangeFilter({
+  from,
+  to,
+  onChange,
+}: {
+  from: string;
+  to: string;
+  onChange: (from: string, to: string) => void;
+}) {
+  const today = new Date().toISOString().slice(0, 10);
+  const thisMonthStart = today.slice(0, 8) + "01";
+  const threeMonthsAgo = new Date(
+    new Date().setMonth(new Date().getMonth() - 3),
+  )
+    .toISOString()
+    .slice(0, 10);
+  const yearStart = today.slice(0, 5) + "01-01";
+  const twelveMonthsAgo = new Date(
+    new Date().setFullYear(new Date().getFullYear() - 1),
+  )
+    .toISOString()
+    .slice(0, 10);
+
+  const presets = [
+    { label: "This Month", from: thisMonthStart, to: today },
+    { label: "Last 3 Months", from: threeMonthsAgo, to: today },
+    { label: "This Year", from: yearStart, to: today },
+    { label: "Last 12 Months", from: twelveMonthsAgo, to: today },
+  ];
+
+  return (
+    <div className="flex flex-wrap items-center gap-3">
+      <div className="flex items-center gap-2">
+        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+          From
+        </label>
+        <input
+          type="date"
+          value={from}
+          max={to || today}
+          onChange={(e) => onChange(e.target.value, to)}
+          className="px-3 py-1.5 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500"
+        />
+      </div>
+      <div className="flex items-center gap-2">
+        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+          To
+        </label>
+        <input
+          type="date"
+          value={to}
+          min={from}
+          max={today}
+          onChange={(e) => onChange(from, e.target.value)}
+          className="px-3 py-1.5 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500"
+        />
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        {presets.map((p) => (
+          <button
+            key={p.label}
+            type="button"
+            onClick={() => onChange(p.from, p.to)}
+            className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
+              from === p.from && to === p.to
+                ? "bg-brand-500 text-white border-brand-500"
+                : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+            }`}
+          >
+            {p.label}
+          </button>
+        ))}
+        {(from || to) && (
+          <button
+            type="button"
+            onClick={() => onChange("", "")}
+            className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+          >
+            Clear
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 export default function Analytics() {
   const [data, setData] = useState<Required<AnalyticsV2Result> | null>(null);
   const [loading, setLoading] = useState(true);
+  const today = new Date().toISOString().slice(0, 10);
+  const twelveMonthsAgo = new Date(
+    new Date().setFullYear(new Date().getFullYear() - 1),
+  )
+    .toISOString()
+    .slice(0, 10);
+  const [dateFrom, setDateFrom] = useState(twelveMonthsAgo);
+  const [dateTo, setDateTo] = useState(today);
+  const [exporting, setExporting] = useState(false);
+
+  const handleExportPdf = () => {
+    setExporting(true);
+    import("../../lib/exportPdf").then(({ exportElementToPdf }) => {
+      exportElementToPdf(
+        "analytics-print-area",
+        `Aegis Analytics ${new Date().toLocaleDateString("en-NG")}`,
+      );
+      setTimeout(() => setExporting(false), 1000);
+    });
+  };
 
   useEffect(() => {
     if (USE_MOCK) {
@@ -224,8 +331,62 @@ export default function Analytics() {
       });
   }, []);
 
-  const g = data?.generalDashboard;
-  const vt = data?.vatTableDashboard;
+  const filteredData = useMemo(() => {
+    if (!data) return null;
+    const fromDate = dateFrom ? new Date(dateFrom) : null;
+    const toDate = dateTo ? new Date(dateTo + "T23:59:59") : null;
+    const monthInRange = (year: number, month: number) => {
+      const mStart = new Date(year, month - 1, 1);
+      const mEnd = new Date(year, month, 0);
+      if (fromDate && mEnd < fromDate) return false;
+      if (toDate && mStart > toDate) return false;
+      return true;
+    };
+    const gd = data.generalDashboard;
+    const vd = data.vatTableDashboard;
+    const filteredSVP = gd.salesVsPurchases.filter((d) =>
+      monthInRange(d.year, d.month),
+    );
+    const filteredVAT = gd.vatTrendAnalysis.filter((d) =>
+      monthInRange(d.year, d.month),
+    );
+    const filteredSAP = gd.salesAndPaymentPerMonth.filter((d) =>
+      monthInRange(d.year, d.month),
+    );
+    const filteredVTNVT = vd.vatTableVsNonVATTableSalesAndPurchase.filter((d) =>
+      monthInRange(d.year, d.month),
+    );
+    const totalSales = filteredSVP.reduce((s, d) => s + d.salesAmount, 0);
+    const totalPurchases = filteredSVP.reduce(
+      (s, d) => s + d.purchasesAmount,
+      0,
+    );
+    const totalOutVAT = filteredVAT.reduce((s, d) => s + d.outputVAT, 0);
+    const totalInVAT = filteredVAT.reduce((s, d) => s + d.inputVAT, 0);
+    return {
+      generalDashboard: {
+        ...gd,
+        salesVsPurchases: filteredSVP,
+        vatTrendAnalysis: filteredVAT,
+        salesAndPaymentPerMonth: filteredSAP,
+        metrics: {
+          ...gd.metrics,
+          totalCustomerInvoicesAmount: totalSales,
+          totalVendorInvoicesAmount: totalPurchases,
+          totalInvoiceValue: totalSales + totalPurchases,
+          totalVATOnCustomerInvoices: totalOutVAT,
+          totalVATOnVendorInvoices: totalInVAT,
+        },
+      },
+      vatTableDashboard: {
+        ...vd,
+        vatTableVsNonVATTableSalesAndPurchase: filteredVTNVT,
+      },
+    } as Required<AnalyticsV2Result>;
+  }, [data, dateFrom, dateTo]);
+
+  const g = filteredData?.generalDashboard;
+  const vt = filteredData?.vatTableDashboard;
 
   // ── Derived metrics ──────────────────────────────────────────────────────
   const totalOutputVat = g?.metrics.totalVATOnCustomerInvoices ?? 0;
@@ -478,15 +639,44 @@ export default function Analytics() {
 
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-xl font-semibold text-gray-800 dark:text-white">
-          Financial Analytics
-        </h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-          12-month rolling view · {periodStart}
-          {periodEnd ? ` – ${periodEnd}` : ""}
-        </p>
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div>
+            <h1 className="text-xl font-semibold text-gray-800 dark:text-white">
+              Financial Analytics
+            </h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+              12-month rolling view · {periodStart}
+              {periodEnd ? ` – ${periodEnd}` : ""}
+            </p>
+          </div>
+          <button
+            onClick={handleExportPdf}
+            disabled={exporting || !data}
+            className="flex items-center gap-2 self-start px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm font-medium rounded-xl transition-colors disabled:opacity-50"
+          >
+            {exporting ? (
+              <span className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17v3a1 1 0 001 1h16a1 1 0 001-1v-3" />
+              </svg>
+            )}
+            Export PDF
+          </button>
+        </div>
+        <div className="mt-4">
+          <DateRangeFilter
+            from={dateFrom}
+            to={dateTo}
+            onChange={(f, t) => {
+              setDateFrom(f);
+              setDateTo(t);
+            }}
+          />
+        </div>
       </div>
 
+      <div id="analytics-print-area">
       {loading ? (
         <div className="flex items-center justify-center py-24">
           <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
@@ -709,6 +899,7 @@ export default function Analytics() {
           </div>
         </div>
       )}
+      </div>{/* end #analytics-print-area */}
     </>
   );
 }

@@ -9,7 +9,11 @@ import {
   type UpdateAppProviderPayload,
 } from "../../lib/api";
 import { useIsAegis } from "../../context/AuthContext";
-import { USE_MOCK, MOCK_ADAPTER_OPTIONS } from "../../lib/mockData";
+import {
+  USE_MOCK,
+  MOCK_ADAPTER_OPTIONS,
+  MOCK_APP_PROVIDERS,
+} from "../../lib/mockData";
 
 // ── Shared styles ─────────────────────────────────────────────────────────────
 const inputCls =
@@ -148,6 +152,13 @@ function CreateModal({
       return;
     }
     setSaving(true);
+    if (USE_MOCK) {
+      await new Promise((r) => setTimeout(r, 400));
+      toast.success("APP provider created. (mock)");
+      setSaving(false);
+      onSaved();
+      return;
+    }
     try {
       await appProviderApi.create(form);
       toast.success("APP provider created.");
@@ -312,6 +323,13 @@ function EditModal({
       return;
     }
     setSaving(true);
+    if (USE_MOCK) {
+      await new Promise((r) => setTimeout(r, 400));
+      toast.success("APP provider updated. (mock)");
+      setSaving(false);
+      onSaved();
+      return;
+    }
     try {
       await appProviderApi.update(provider.id, form);
       toast.success("APP provider updated.");
@@ -441,6 +459,13 @@ export default function AppProviderList() {
   const [deleting, setDeleting] = useState<string | null>(null);
 
   const load = (p = page) => {
+    if (USE_MOCK) {
+      setProviders(MOCK_APP_PROVIDERS as AccessPointProviderDto[]);
+      setTotalPages(1);
+      setTotalCount(MOCK_APP_PROVIDERS.length);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     appProviderApi
       .list(p, pageSize)
@@ -460,6 +485,13 @@ export default function AppProviderList() {
   const handleDelete = async (id: string, name: string) => {
     if (!window.confirm(`Delete "${name}"? This cannot be undone.`)) return;
     setDeleting(id);
+    if (USE_MOCK) {
+      setProviders((prev) => prev.filter((p) => p.id !== id));
+      setTotalCount((c) => c - 1);
+      toast.success(`"${name}" deleted.`);
+      setDeleting(null);
+      return;
+    }
     try {
       await appProviderApi.delete(id);
       toast.success(`"${name}" deleted.`);

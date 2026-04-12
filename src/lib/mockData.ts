@@ -6,6 +6,8 @@
  *   CLIENT_ADMIN  — business admin (Chidi Okonkwo) - default
  *   CLIENT_USER   — read-only business user (Ngozi Eze)
  *   AEGIS_ADMIN   — platform super-admin (Emeka Adeyemi)
+ *   SFTP_ADMIN    — SFTP-plan business admin (Amaka Nwosu)
+ *   API_ONLY      — ApiOnly-plan business admin (Seun Bankole)
  */
 export const USE_MOCK = import.meta.env.VITE_USE_MOCK !== "false";
 
@@ -64,6 +66,39 @@ export const MOCK_USER_AEGIS_ADMIN = {
   mustChangePassword: false,
 };
 
+export const MOCK_USER_SFTP_ADMIN = {
+  userId: "mock-user-003",
+  businessId: "mock-biz-002",
+  NRStName: "Amaka",
+  lastName: "Nwosu",
+  email: "amaka.nwosu@logisticshub.com",
+  roles: ["Admin"],
+  permissions: [
+    "invoice:create",
+    "invoice:approve",
+    "party:manage",
+    "user:manage",
+  ],
+  isAegisUser: false,
+  aegisRole: undefined as string | undefined,
+  subscriptionTier: "SFTP",
+  mustChangePassword: false,
+};
+
+export const MOCK_USER_API_ONLY = {
+  userId: "mock-user-004",
+  businessId: "mock-biz-003",
+  NRStName: "Seun",
+  lastName: "Bankole",
+  email: "seun.bankole@techbridge.ng",
+  roles: ["Admin"],
+  permissions: ["invoice:view", "party:view"],
+  isAegisUser: false,
+  aegisRole: undefined as string | undefined,
+  subscriptionTier: "ApiOnly",
+  mustChangePassword: false,
+};
+
 // ── Active user based on .env configuration ──────────────────────────────────
 const mockUserRole = import.meta.env.VITE_MOCK_USER_ROLE || "CLIENT_ADMIN";
 
@@ -72,7 +107,11 @@ export const MOCK_USER =
     ? MOCK_USER_CLIENT_USER
     : mockUserRole === "AEGIS_ADMIN"
       ? MOCK_USER_AEGIS_ADMIN
-      : MOCK_USER_CLIENT_ADMIN;
+      : mockUserRole === "SFTP_ADMIN"
+        ? MOCK_USER_SFTP_ADMIN
+        : mockUserRole === "API_ONLY"
+          ? MOCK_USER_API_ONLY
+          : MOCK_USER_CLIENT_ADMIN;
 // Fallback to CLIENT_ADMIN if invalid role specified
 
 // ─── Dashboard Stats ──────────────────────────────────────────────────────────
@@ -114,6 +153,9 @@ export const MOCK_DASHBOARD_STATS = {
   partiallyPaidInvoices: 53,
   // Received
   totalReceivedInvoices: 76,
+  // Aegis platform revenue
+  platformRevenueTotal: 47_250_000,
+  platformRevenueThisMonth: 6_180_000,
 };
 
 // ─── Invoices (15 rows → 3 pages of 5) ───────────────────────────────────────
@@ -122,8 +164,8 @@ export const MOCK_INVOICES = [
     id: "inv-001",
     invoiceCode: "INV-2025-0042",
     irn: "FIR20250042ACME0000001",
-    issueDate: "2025-03-20",
-    dueDate: "2025-04-20",
+    issueDate: "2026-04-10",
+    dueDate: "2026-05-10",
     totalAmount: 4_720_000,
     totalTaxAmount: 354_000,
     status: "TRANSMITTED",
@@ -136,8 +178,8 @@ export const MOCK_INVOICES = [
     id: "inv-002",
     invoiceCode: "INV-2025-0041",
     irn: "FIR20250041ACME0000002",
-    issueDate: "2025-03-18",
-    dueDate: "2025-04-18",
+    issueDate: "2026-04-03",
+    dueDate: "2026-05-03",
     totalAmount: 1_850_000,
     totalTaxAmount: 138_750,
     status: "SUBMITTED",
@@ -150,8 +192,8 @@ export const MOCK_INVOICES = [
     id: "inv-003",
     invoiceCode: "INV-2025-0040",
     irn: "FIR20250040ACME0000003",
-    issueDate: "2025-03-15",
-    dueDate: "2025-04-15",
+    issueDate: "2026-03-28",
+    dueDate: "2026-04-28",
     totalAmount: 920_000,
     totalTaxAmount: 69_000,
     status: "PENDING_APPROVAL",
@@ -164,8 +206,8 @@ export const MOCK_INVOICES = [
     id: "inv-004",
     invoiceCode: "INV-2025-0039",
     irn: "FIR20250039ACME0000004",
-    issueDate: "2025-03-10",
-    dueDate: "2025-04-10",
+    issueDate: "2026-03-20",
+    dueDate: "2026-04-20",
     totalAmount: 560_000,
     totalTaxAmount: 42_000,
     status: "DRAFT",
@@ -177,8 +219,8 @@ export const MOCK_INVOICES = [
     id: "inv-005",
     invoiceCode: "INV-2025-0038",
     irn: "FIR20250038ACME0000005",
-    issueDate: "2025-03-05",
-    dueDate: "2025-04-05",
+    issueDate: "2026-03-10",
+    dueDate: "2026-04-10",
     totalAmount: 2_300_000,
     totalTaxAmount: 172_500,
     status: "TRANSMITTED",
@@ -190,8 +232,8 @@ export const MOCK_INVOICES = [
     id: "inv-006",
     invoiceCode: "INV-2025-0037",
     irn: "FIR20250037ACME0000006",
-    issueDate: "2025-02-28",
-    dueDate: "2025-03-28",
+    issueDate: "2026-02-25",
+    dueDate: "2026-03-25",
     totalAmount: 780_000,
     totalTaxAmount: 58_500,
     status: "REJECTED",
@@ -203,8 +245,8 @@ export const MOCK_INVOICES = [
     id: "inv-007",
     invoiceCode: "INV-2025-0036",
     irn: "FIR20250036ACME0000007",
-    issueDate: "2025-02-20",
-    dueDate: "2025-03-20",
+    issueDate: "2026-02-14",
+    dueDate: "2026-03-14",
     totalAmount: 3_120_000,
     totalTaxAmount: 234_000,
     status: "TRANSMITTED",
@@ -216,8 +258,8 @@ export const MOCK_INVOICES = [
     id: "inv-008",
     invoiceCode: "INV-2025-0035",
     irn: "FIR20250035ACME0000008",
-    issueDate: "2025-02-15",
-    dueDate: undefined,
+    issueDate: "2026-02-05",
+    dueDate: "2026-03-05",
     totalAmount: 490_000,
     totalTaxAmount: 36_750,
     status: "APPROVED",
@@ -229,8 +271,8 @@ export const MOCK_INVOICES = [
     id: "inv-009",
     invoiceCode: "INV-2025-0034",
     irn: "FIR20250034ACME0000009",
-    issueDate: "2025-02-10",
-    dueDate: "2025-03-10",
+    issueDate: "2026-01-25",
+    dueDate: "2026-02-25",
     totalAmount: 6_400_000,
     totalTaxAmount: 480_000,
     status: "TRANSMITTED",
@@ -242,8 +284,8 @@ export const MOCK_INVOICES = [
     id: "inv-010",
     invoiceCode: "INV-2025-0033",
     irn: "FIR20250033ACME0000010",
-    issueDate: "2025-02-05",
-    dueDate: "2025-03-05",
+    issueDate: "2026-01-12",
+    dueDate: "2026-02-12",
     totalAmount: 1_100_000,
     totalTaxAmount: 82_500,
     status: "DRAFT",
@@ -255,8 +297,8 @@ export const MOCK_INVOICES = [
     id: "inv-011",
     invoiceCode: "INV-2025-0032",
     irn: "FIR20250032ACME0000011",
-    issueDate: "2025-01-28",
-    dueDate: "2025-02-28",
+    issueDate: "2025-12-28",
+    dueDate: "2026-01-28",
     totalAmount: 3_750_000,
     totalTaxAmount: 281_250,
     status: "TRANSMITTED",
@@ -268,8 +310,8 @@ export const MOCK_INVOICES = [
     id: "inv-012",
     invoiceCode: "INV-2025-0031",
     irn: "FIR20250031ACME0000012",
-    issueDate: "2025-01-20",
-    dueDate: "2025-02-20",
+    issueDate: "2025-12-10",
+    dueDate: "2026-01-10",
     totalAmount: 870_000,
     totalTaxAmount: 65_250,
     status: "SUBMITTED",
@@ -281,8 +323,8 @@ export const MOCK_INVOICES = [
     id: "inv-013",
     invoiceCode: "INV-2025-0030",
     irn: "FIR20250030ACME0000013",
-    issueDate: "2025-01-15",
-    dueDate: "2025-02-15",
+    issueDate: "2025-11-20",
+    dueDate: "2025-12-20",
     totalAmount: 2_050_000,
     totalTaxAmount: 153_750,
     status: "PENDING_APPROVAL",
@@ -294,8 +336,8 @@ export const MOCK_INVOICES = [
     id: "inv-014",
     invoiceCode: "INV-2025-0029",
     irn: "FIR20250029ACME0000014",
-    issueDate: "2025-01-10",
-    dueDate: "2025-02-10",
+    issueDate: "2025-11-05",
+    dueDate: "2025-12-05",
     totalAmount: 5_200_000,
     totalTaxAmount: 390_000,
     status: "TRANSMITTED",
@@ -307,8 +349,8 @@ export const MOCK_INVOICES = [
     id: "inv-015",
     invoiceCode: "INV-2025-0028",
     irn: "FIR20250028ACME0000015",
-    issueDate: "2025-01-05",
-    dueDate: "2025-02-05",
+    issueDate: "2025-10-25",
+    dueDate: "2025-11-25",
     totalAmount: 330_000,
     totalTaxAmount: 24_750,
     status: "DRAFT",
@@ -694,7 +736,7 @@ export const MOCK_ITEMS = [
     createdAt: "2025-01-01T00:00:00Z",
     taxCategories: [
       {
-        code: "01",
+        code: "STANDARD_VAT",
         name: "Standard Value-Added Tax",
         isPercentage: true,
         percent: 7.5,
@@ -716,7 +758,7 @@ export const MOCK_ITEMS = [
     createdAt: "2025-01-01T00:00:00Z",
     taxCategories: [
       {
-        code: "01",
+        code: "STANDARD_VAT",
         name: "Standard Value-Added Tax",
         isPercentage: true,
         percent: 7.5,
@@ -738,7 +780,7 @@ export const MOCK_ITEMS = [
     createdAt: "2025-01-01T00:00:00Z",
     taxCategories: [
       {
-        code: "01",
+        code: "STANDARD_VAT",
         name: "Standard Value-Added Tax",
         isPercentage: true,
         percent: 7.5,
@@ -760,7 +802,7 @@ export const MOCK_ITEMS = [
     createdAt: "2025-01-01T00:00:00Z",
     taxCategories: [
       {
-        code: "02",
+        code: "ZERO_VAT",
         name: "Zero Value-Added Tax",
         isPercentage: true,
         percent: 0,
@@ -782,7 +824,7 @@ export const MOCK_ITEMS = [
     createdAt: "2025-01-01T00:00:00Z",
     taxCategories: [
       {
-        code: "01",
+        code: "STANDARD_VAT",
         name: "Standard Value-Added Tax",
         isPercentage: true,
         percent: 7.5,
@@ -804,7 +846,7 @@ export const MOCK_ITEMS = [
     createdAt: "2025-01-01T00:00:00Z",
     taxCategories: [
       {
-        code: "01",
+        code: "STANDARD_VAT",
         name: "Standard Value-Added Tax",
         isPercentage: true,
         percent: 7.5,
@@ -826,7 +868,7 @@ export const MOCK_ITEMS = [
     createdAt: "2025-01-01T00:00:00Z",
     taxCategories: [
       {
-        code: "01",
+        code: "STANDARD_VAT",
         name: "Standard Value-Added Tax",
         isPercentage: true,
         percent: 7.5,
@@ -863,7 +905,7 @@ export const MOCK_ITEMS = [
     createdAt: "2025-01-01T00:00:00Z",
     taxCategories: [
       {
-        code: "01",
+        code: "STANDARD_VAT",
         name: "Standard Value-Added Tax",
         isPercentage: true,
         percent: 7.5,
@@ -885,7 +927,7 @@ export const MOCK_ITEMS = [
     createdAt: "2025-01-01T00:00:00Z",
     taxCategories: [
       {
-        code: "01",
+        code: "STANDARD_VAT",
         name: "Standard Value-Added Tax",
         isPercentage: true,
         percent: 7.5,
@@ -988,6 +1030,112 @@ export const MOCK_ADAPTER_OPTIONS = [
   { adapterKey: "etranzact", displayName: "eTranzact" },
   { adapterKey: "bluebridge", displayName: "BlueBridge" },
 ];
+
+// ─── Mock APP Providers (Aegis superadmin view) ──────────────────────────────
+export const MOCK_APP_PROVIDERS = [
+  {
+    id: "app-prov-001",
+    name: "Interswitch SwitchTax",
+    description: "Primary FIRS-certified e-invoicing gateway via Interswitch",
+    adapterKey: "interswitch",
+    displayName: "Interswitch",
+    baseUrl: "https://api.interswitchgroup.com/switchtax/v1",
+    hasProductionCredentials: true,
+    credentialsJson: JSON.stringify(
+      {
+        clientId: "ISWTAX-CLIENT-7A3B9C",
+        clientSecret: "sw-prod-secret-xKj2mN9pQrT4vW",
+        terminalId: "3001234567",
+        institutionCode: "057",
+        sendPayerId: true,
+      },
+      null,
+      2,
+    ),
+    sandboxBaseUrl: "https://sandbox.interswitchgroup.com/switchtax/v1",
+    hasSandboxCredentials: true,
+    sandboxCredentialsJson: JSON.stringify(
+      {
+        clientId: "ISWTAX-SANDBOX-2F8D1E",
+        clientSecret: "sw-sbx-secret-aB5cD6eF7g",
+        terminalId: "9009999990",
+        institutionCode: "057",
+        sendPayerId: true,
+      },
+      null,
+      2,
+    ),
+    isActive: true,
+    createdAt: "2025-09-01T08:00:00Z",
+  },
+  {
+    id: "app-prov-002",
+    name: "Digitax Gateway",
+    description: "Digitax e-invoicing integration for SME segment",
+    adapterKey: "digitax",
+    displayName: "Digitax",
+    baseUrl: "https://api.digitax.ng/v2",
+    hasProductionCredentials: true,
+    credentialsJson: JSON.stringify(
+      {
+        apiKey: "dgt-prod-api-Lm4nO5pQ6r",
+        apiSecret: "dgt-prod-sec-Rs7tU8vW9x",
+        merchantRef: "ACMENG-NG-2025",
+      },
+      null,
+      2,
+    ),
+    sandboxBaseUrl: "https://sandbox.digitax.ng/v2",
+    hasSandboxCredentials: false,
+    sandboxCredentialsJson: "",
+    isActive: true,
+    createdAt: "2025-10-15T10:30:00Z",
+  },
+  {
+    id: "app-prov-003",
+    name: "eTranzact InvoiceX",
+    description: "eTranzact FIRS-accredited invoicing connector",
+    adapterKey: "etranzact",
+    displayName: "eTranzact",
+    baseUrl: "https://invoicex.etranzact.com/api",
+    hasProductionCredentials: false,
+    credentialsJson: "",
+    sandboxBaseUrl: "https://sandbox.etranzact.com/invoicex/api",
+    hasSandboxCredentials: true,
+    sandboxCredentialsJson: JSON.stringify(
+      {
+        merchantId: "ETZ-MERCH-00421",
+        authToken: "etz-sbx-token-Yy1zZ2aA3b",
+        passPhrase: "sbx-phrase-Cc4dD5eE6f",
+      },
+      null,
+      2,
+    ),
+    isActive: false,
+    createdAt: "2026-01-10T09:00:00Z",
+  },
+  {
+    id: "app-prov-004",
+    name: "BlueBridge Connect",
+    description: "BlueBridge FIRS-certified e-invoicing pipeline",
+    adapterKey: "bluebridge",
+    displayName: "BlueBridge",
+    baseUrl: "https://connect.bluebridgeng.com/einvoice/v1",
+    hasProductionCredentials: false,
+    credentialsJson: "",
+    sandboxBaseUrl: undefined,
+    hasSandboxCredentials: false,
+    sandboxCredentialsJson: "",
+    isActive: false,
+    createdAt: "2026-02-20T14:00:00Z",
+  },
+];
+
+// ─── Mock Business APP Settings (client-user view) ───────────────────────────
+export const MOCK_BUSINESS_APP_SETTINGS = {
+  activeAdapterKey: "interswitch" as string | null,
+  environmentMode: 1 as 1 | 2, // 1 = Sandbox, 2 = Production
+};
 
 // ─── FIRS Product Codes (Goods) ──────────────────────────────────────────────────
 export const MOCK_PRODUCT_CODES = [

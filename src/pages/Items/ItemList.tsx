@@ -203,18 +203,26 @@ export default function ItemList() {
     }));
   };
 
+  const isNRSPercentKnown = (nrsCode: string) => {
+    const nrs = taxCategories.find((t) => t.code === nrsCode);
+    if (!nrs) return false;
+    return nrs.percent !== "Not Available" && nrs.percent !== "";
+  };
+
   const applyNRSTaxCategory = (idx: number, nrsCode: string) => {
     const nrs = taxCategories.find((t) => t.code === nrsCode);
-    if (!nrs) return;
-    const parsedPercent =
-      nrs.percent === "Not Available" || nrs.percent === ""
-        ? undefined
-        : parseFloat(nrs.percent);
+    if (!nrs) {
+      updateTaxEntry(idx, { code: "", name: "", isPercentage: true, percent: undefined, flatAmount: undefined });
+      return;
+    }
+    const percentKnown = nrs.percent !== "Not Available" && nrs.percent !== "";
     updateTaxEntry(idx, {
       code: nrs.code,
       name: nrs.value,
-      isPercentage: true,
-      percent: parsedPercent,
+      // if percent is known, lock to percentage mode with the value filled
+      // if not known, reset so user can choose type and enter a value
+      isPercentage: percentKnown ? true : true, // default to percent for unknown, user can switch
+      percent: percentKnown ? parseFloat(nrs.percent) : undefined,
       flatAmount: undefined,
     });
   };
@@ -395,95 +403,96 @@ export default function ItemList() {
                   + Add Tax Category
                 </button>
               </div>
-              {form.taxCategories.map((tc, idx) => (
-                <div
-                  key={idx}
-                  className="flex flex-col sm:flex-row gap-2 p-3 border border-gray-200 dark:border-gray-600 rounded-lg"
-                >
-                  {/* Pick from FIRS list */}
-                  <select
-                    value={tc.code}
-                    onChange={(e) => applyNRSTaxCategory(idx, e.target.value)}
-                    className={`${inputCls} sm:w-48`}
+              {form.taxCategories.map((tc, idx) => {
+                const percentKnown = tc.code ? isNRSPercentKnown(tc.code) : false;
+                return (
+                  <div
+                    key={idx}
+                    className="flex flex-col sm:flex-row gap-2 p-3 border border-gray-200 dark:border-gray-600 rounded-lg"
                   >
-                    <option value="">— Select FIRS code —</option>
-                    {taxCategories.map((nrs) => (
-                      <option key={nrs.code} value={nrs.code}>
-                        {nrs.value}
-                        {nrs.percent !== "Not Available" && nrs.percent !== ""
-                          ? ` (${nrs.percent}%)`
-                          : ""}
-                      </option>
-                    ))}
-                  </select>
-
-                  {/* % / Flat toggle */}
-                  <select
-                    value={tc.isPercentage ? "percent" : "flat"}
-                    onChange={(e) =>
-                      updateTaxEntry(idx, {
-                        isPercentage: e.target.value === "percent",
-                        percent:
-                          e.target.value === "percent"
-                            ? (tc.percent ?? 0)
-                            : undefined,
-                        flatAmount:
-                          e.target.value === "flat"
-                            ? (tc.flatAmount ?? 0)
-                            : undefined,
-                      })
-                    }
-                    className={`${inputCls} sm:w-32`}
-                  >
-                    <option value="percent">%</option>
-                    <option value="flat">Flat fee</option>
-                  </select>
-
-                  {/* Value input */}
-                  {tc.isPercentage ? (
-                    <input
-                      type="number"
-                      min="0"
-                      max="100"
-                      step="0.01"
-                      value={tc.percent ?? ""}
-                      onChange={(e) =>
-                        updateTaxEntry(idx, {
-                          percent: parseFloat(e.target.value) || 0,
-                        })
-                      }
-                      placeholder="Rate %"
-                      className={`${inputCls} sm:w-28`}
-                      required
-                    />
-                  ) : (
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={tc.flatAmount ?? ""}
-                      onChange={(e) =>
-                        updateTaxEntry(idx, {
-                          flatAmount: parseFloat(e.target.value) || 0,
-                        })
-                      }
-                      placeholder="Amount ₦"
-                      className={`${inputCls} sm:w-28`}
-                      required
-                    />
-                  )}
-
-                  {form.taxCategories.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeTaxEntry(idx)}
-                      className="text-red-500 hover:text-red-600 text-xs font-medium self-center"
+                    {/* Pick from FIRS list */}
+                    <select
+                      value={tc.code}
+                      onChange={(e) => applyNRSTaxCategory(idx, e.target.value)}
+                      className={`${inputCls} sm:w-56`}
                     >
-                      Remove
-                    </button>
-                  )}
-                </div>
-              ))}
+                      <option value="">— Select FIRS code —</option>
+                      {taxCategories.map((nrs) => (
+                        <option key={nrs.code} value={nrs.code}>
+                          {nrs.value}
+                          {nrs.percent !== "Not Available" && nrs.percent !== ""
+                            ? ` (${nrs.percent}%)`
+                            : ""}
+                        </option>
+                      ))}
+                    </select>
+
+                    {/* % / Flat toggle — disabled when rate is known from FIRS */}
+                    <select
+                      value={tc.isPercentage ? "percent" : "flat"}
+                      disabled={percentKnown}
+                      onChange={(e) =>
+                        updateTaxEntry(idx, {
+                          isPercentage: e.target.value === "percent",
+                          percent: e.target.value === "percent" ? (tc.percent ?? 0) : undefined,
+                          flatAmount: e.target.value === "flat" ? (tc.flatAmount ?? 0) : undefined,
+                        })
+                      }
+                      className={`${inputCls} sm:w-28 ${percentKnown ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-700" : ""}`}
+                    >
+                      <option value="percent">%</option>
+                      <option value="flat">Flat ₦</option>
+                    </select>
+
+                    {/* Value input — disabled (auto-filled) when rate is known from FIRS */}
+                    {tc.isPercentage ? (
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.01"
+                        value={tc.percent ?? ""}
+                        disabled={percentKnown}
+                        onChange={(e) =>
+                          updateTaxEntry(idx, { percent: parseFloat(e.target.value) || 0 })
+                        }
+                        placeholder="Enter rate %"
+                        className={`${inputCls} sm:w-28 ${percentKnown ? "opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-700" : ""}`}
+                        required
+                      />
+                    ) : (
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={tc.flatAmount ?? ""}
+                        onChange={(e) =>
+                          updateTaxEntry(idx, { flatAmount: parseFloat(e.target.value) || 0 })
+                        }
+                        placeholder="Enter amount ₦"
+                        className={`${inputCls} sm:w-28`}
+                        required
+                      />
+                    )}
+
+                    {percentKnown && (
+                      <span className="text-xs text-gray-400 dark:text-gray-500 self-center whitespace-nowrap">
+                        Auto-filled by FIRS
+                      </span>
+                    )}
+
+                    {form.taxCategories.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeTaxEntry(idx)}
+                        className="text-red-500 hover:text-red-600 text-xs font-medium self-center"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
           <div className="flex gap-3 justify-end mt-4">

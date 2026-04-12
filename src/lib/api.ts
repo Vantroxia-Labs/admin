@@ -165,6 +165,9 @@ export interface DashboardStats {
   partiallyPaidInvoices: number;
   totalReceivedInvoices: number;
   pendingRegistrations: number;
+  /** Aegis platform revenue (subscription fees collected) */
+  platformRevenueTotal: number;
+  platformRevenueThisMonth: number;
 }
 
 export const businessApi = {
@@ -230,6 +233,7 @@ export interface CreateInvoicePayload {
   dueDate?: string;
   currencyCode: string;
   invoiceTypeCode: string;
+  invoiceKind?: string;
   paymentMeansCode?: string;
   note?: string;
   orderReference?: string;
