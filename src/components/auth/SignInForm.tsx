@@ -11,7 +11,7 @@ export default function SignInForm() {
   const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || "/";
+  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || "/dashboard";
 
   // Already logged in (e.g. mock mode) — go straight to app
   if (isAuthenticated) {

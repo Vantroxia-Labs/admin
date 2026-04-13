@@ -19,6 +19,10 @@ import InvoiceDetail from "./pages/Invoices/InvoiceDetail";
 import Onboarding from "./pages/Onboarding";
 import PaymentCallback from "./pages/PaymentCallback";
 import AppLayout from "./layout/AppLayout";
+import PublicLayout from "./layout/PublicLayout";
+import LandingPage from "./pages/Public/LandingPage";
+import AboutPage from "./pages/Public/AboutPage";
+import PricingPage from "./pages/Public/PricingPage";
 import { PrivateRoute } from "./components/common/PrivateRoute";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 
@@ -28,11 +32,18 @@ export default function App() {
       <Router>
         <ScrollToTop />
         <Routes>
+          {/* Public marketing pages */}
+          <Route element={<PublicLayout />}>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/pricing" element={<PricingPage />} />
+          </Route>
+
           {/* Protected routes — require authentication */}
           <Route element={<PrivateRoute />}>
             {/* Main app layout (sidebar + header) */}
             <Route element={<AppLayout />}>
-              <Route index path="/" element={<Home />} />
+              <Route path="/dashboard" element={<Home />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/invoices" element={<InvoiceList />} />
               <Route path="/invoices/create" element={<CreateInvoice />} />

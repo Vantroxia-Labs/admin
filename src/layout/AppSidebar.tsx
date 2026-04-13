@@ -39,7 +39,7 @@ const AppSidebar: React.FC = () => {
     {
       icon: <GridIcon />,
       name: "Dashboard",
-      path: "/",
+      path: "/dashboard",
     },
     // Invoices section
     {
@@ -300,7 +300,7 @@ const AppSidebar: React.FC = () => {
           !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
         }`}
       >
-        <Link to="/" className="flex items-center gap-2">
+        <Link to="/dashboard" className="flex items-center gap-2">
           <img
             src="/images/logo/logo-icon.svg"
             alt="Aegis"
