@@ -2,9 +2,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
 
 import {
+  BoxIcon,
   ChevronDownIcon,
   FileIcon,
   GridIcon,
+  GroupIcon,
   HorizontaLDots,
   TableIcon,
   UserCircleIcon,
@@ -117,8 +119,6 @@ const AppSidebar: React.FC = () => {
               : []),
             { name: "My Invoices", path: "/invoices" },
             { name: "Received", path: "/received-invoices" },
-            { name: "Parties", path: "/parties" },
-            { name: "Items", path: "/items" },
           ],
         },
         {
@@ -129,6 +129,8 @@ const AppSidebar: React.FC = () => {
             { name: "VAT Schedule", path: "/reports/schedules" },
           ],
         },
+        { icon: <GroupIcon />, name: "Parties", path: "/parties" },
+        { icon: <BoxIcon />, name: "Items", path: "/items" },
         {
           icon: (
             <svg
