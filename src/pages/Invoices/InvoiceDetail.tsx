@@ -48,8 +48,6 @@ const PAY_LABELS: Record<string, string> = {
   PENDING: "Pending",
   PAID: "Paid",
   REJECTED: "Rejected",
-  CANCELLED: "Cancelled",
-  FAILED: "Failed",
 };
 
 // Mock line items for invoice detail
@@ -160,6 +158,12 @@ export default function InvoiceDetail() {
 
   const handleUpdatePayment = async () => {
     if (!invoice) return;
+    if (paymentStatus === "PAID" && !paymentRef.trim()) {
+      toast.error(
+        "A payment reference is required when marking an invoice as Paid.",
+      );
+      return;
+    }
     setUpdatingPayment(true);
     try {
       if (USE_MOCK) {
@@ -556,7 +560,12 @@ export default function InvoiceDetail() {
             {isAdmin && (
               <button
                 onClick={() => {
-                  setPaymentStatus(invoice.paymentStatus || "PAID");
+                  const current = invoice.paymentStatus;
+                  setPaymentStatus(
+                    current === "PAID" || current === "REJECTED"
+                      ? current
+                      : "PAID",
+                  );
                   setPaymentRef("");
                   setPaymentModal(true);
                 }}
@@ -673,14 +682,13 @@ export default function InvoiceDetail() {
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500"
                 >
                   <option value="PAID">Paid</option>
-                  <option value="PENDING">Pending</option>
-                  <option value="CANCELLED">Cancelled</option>
+                  <option value="REJECTED">Rejected</option>
                 </select>
               </div>
               {paymentStatus === "PAID" && (
                 <div>
                   <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
-                    Payment Reference (optional)
+                    Payment Reference <span className="text-red-500">*</span>
                   </label>
                   <input
                     value={paymentRef}

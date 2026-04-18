@@ -24,7 +24,13 @@ type NavItem = {
   name: string;
   icon: React.ReactNode;
   path?: string;
-  subItems?: { name: string; path: string; pro?: boolean; new?: boolean; state?: Record<string, unknown> }[];
+  subItems?: {
+    name: string;
+    path: string;
+    pro?: boolean;
+    new?: boolean;
+    state?: Record<string, unknown>;
+  }[];
 };
 
 const AppSidebar: React.FC = () => {
@@ -35,18 +41,48 @@ const AppSidebar: React.FC = () => {
   const canCreateInvoice = useCanCreateInvoice();
 
   const appProviderIcon = (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7" />
+    <svg
+      className="w-5 h-5"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      strokeWidth={2}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M5 12h14M12 5l7 7-7 7"
+      />
     </svg>
   );
   const businessesIcon = (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3 21h18M3 7v14M21 7v14M6 21V11M18 21V11M9 21v-4h6v4M12 3L3 7h18L12 3z" />
+    <svg
+      className="w-5 h-5"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      strokeWidth={2}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M3 21h18M3 7v14M21 7v14M6 21V11M18 21V11M9 21v-4h6v4M12 3L3 7h18L12 3z"
+      />
     </svg>
   );
   const reportsIcon = (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+    <svg
+      className="w-5 h-5"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      strokeWidth={2}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+      />
     </svg>
   );
 
@@ -57,7 +93,11 @@ const AppSidebar: React.FC = () => {
         { icon: <GridIcon />, name: "Dashboard", path: "/" },
         { icon: businessesIcon, name: "Businesses", path: "/businesses" },
         { icon: <UserCircleIcon />, name: "Users", path: "/users" },
-        { icon: appProviderIcon, name: "APP Providers", path: "/app-providers" },
+        {
+          icon: appProviderIcon,
+          name: "APP Providers",
+          path: "/app-providers",
+        },
         { icon: <TableIcon />, name: "Settings", path: "/settings" },
       ]
     : [
@@ -70,7 +110,11 @@ const AppSidebar: React.FC = () => {
             ...(canCreateInvoice
               ? [
                   { name: "Create Invoice", path: "/invoices/create" },
-                  { name: "Credit / Debit Note", path: "/invoices/create", state: { noteType: "note" } },
+                  {
+                    name: "Credit / Debit Note",
+                    path: "/invoices/create",
+                    state: { noteType: "note" },
+                  },
                 ]
               : []),
             { name: "My Invoices", path: "/invoices" },
@@ -87,6 +131,29 @@ const AppSidebar: React.FC = () => {
         },
         { icon: <GroupIcon />, name: "Parties", path: "/parties" },
         { icon: <BoxIcon />, name: "Items", path: "/items" },
+        {
+          icon: (
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+            </svg>
+          ),
+          name: "Vendors",
+          subItems: [
+            { name: "Vendor Groups", path: "/vendor-groups" },
+            { name: "All Vendors", path: "/vendors" },
+            { name: "Broadcasts", path: "/broadcasts" },
+          ],
+        },
         ...(isAdmin
           ? [{ icon: <UserCircleIcon />, name: "Users", path: "/users" }]
           : []),
@@ -106,14 +173,14 @@ const AppSidebar: React.FC = () => {
     index: number;
   } | null>(null);
   const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>(
-    {}
+    {},
   );
   const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   // const isActive = (path: string) => location.pathname === path;
   const isActive = useCallback(
     (path: string) => location.pathname === path,
-    [location.pathname]
+    [location.pathname],
   );
 
   // For sub-items that share a path but differ by router state (e.g. Credit/Debit Note vs Create Invoice)
@@ -127,7 +194,7 @@ const AppSidebar: React.FC = () => {
       // No noteType in subItem — active only when location state has no noteType either
       return !locState?.noteType;
     },
-    [location]
+    [location],
   );
 
   useEffect(() => {
@@ -310,8 +377,8 @@ const AppSidebar: React.FC = () => {
           isExpanded || isMobileOpen
             ? "w-[290px]"
             : isHovered
-            ? "w-[290px]"
-            : "w-[90px]"
+              ? "w-[290px]"
+              : "w-[90px]"
         }
         ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
         lg:translate-x-0`}

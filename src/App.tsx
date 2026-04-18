@@ -21,6 +21,11 @@ import PaymentCallback from "./pages/PaymentCallback";
 import AppLayout from "./layout/AppLayout";
 import AppProviderList from "./pages/AppProviders/AppProviderList";
 import BusinessList from "./pages/Businesses/BusinessList";
+import VendorGroupList from "./pages/Vendors/VendorGroupList";
+import VendorList from "./pages/Vendors/VendorList";
+import BroadcastList from "./pages/Broadcasts/BroadcastList";
+import BroadcastDetail from "./pages/Broadcasts/BroadcastDetail";
+import VendorPortal from "./pages/VendorPortal/VendorPortal";
 import { PrivateRoute } from "./components/common/PrivateRoute";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import { EnvModeProvider } from "./context/EnvModeContext";
@@ -53,6 +58,10 @@ export default function App() {
               <Route path="/reports/schedules" element={<Schedules />} />
               <Route path="/app-providers" element={<AppProviderList />} />
               <Route path="/businesses" element={<BusinessList />} />
+              <Route path="/vendor-groups" element={<VendorGroupList />} />
+              <Route path="/vendors" element={<VendorList />} />
+              <Route path="/broadcasts" element={<BroadcastList />} />
+              <Route path="/broadcasts/:id" element={<BroadcastDetail />} />
             </Route>
 
             {/* Routes that use their own full-screen layout */}
@@ -65,6 +74,7 @@ export default function App() {
           <Route path="/signup" element={<SignUp />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/payment/callback" element={<PaymentCallback />} />
+          <Route path="/vendor-portal/:token" element={<VendorPortal />} />
 
           {/* Fallback */}
           <Route path="*" element={<NotFound />} />

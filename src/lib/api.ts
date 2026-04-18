@@ -1014,3 +1014,288 @@ export const analyticsV2Api = {
     }));
   },
 };
+
+// ── Vendor Management ─────────────────────────────────────────────────────────
+
+export interface VendorGroup {
+  id: string;
+  name: string;
+  description?: string;
+  vendorCount: number;
+  createdAt: string;
+}
+
+export interface Vendor {
+  id: string;
+  businessName: string;
+  email: string;
+  phone?: string;
+  isActive: boolean;
+  vendorGroupId?: string;
+  vendorGroupName?: string;
+  createdAt: string;
+}
+
+export const vendorGroupApi = {
+  list: (params?: { page?: number; pageSize?: number; searchTerm?: string }) =>
+    api
+      .get<
+        ApiResponse<PaginatedResult<VendorGroup>>
+      >("/vendor/groups", { params })
+      .then(unwrap),
+  get: (id: string) =>
+    api.get<ApiResponse<VendorGroup>>(`/vendor/groups/${id}`).then(unwrap),
+  create: (payload: { name: string; description?: string }) =>
+    api
+      .post<
+        ApiResponse<{ isSuccess: boolean; message: string; id?: string }>
+      >("/vendor/groups", payload)
+      .then(unwrap),
+  update: (id: string, payload: { name: string; description?: string }) =>
+    api
+      .put<
+        ApiResponse<{ isSuccess: boolean; message: string }>
+      >(`/vendor/groups/${id}`, payload)
+      .then(unwrap),
+  delete: (id: string) =>
+    api
+      .delete<
+        ApiResponse<{ isSuccess: boolean; message: string }>
+      >(`/vendor/groups/${id}`)
+      .then(unwrap),
+};
+
+export const vendorApi = {
+  list: (params?: {
+    page?: number;
+    pageSize?: number;
+    searchTerm?: string;
+    vendorGroupId?: string;
+  }) =>
+    api
+      .get<ApiResponse<PaginatedResult<Vendor>>>("/vendor", { params })
+      .then(unwrap),
+  get: (id: string) =>
+    api.get<ApiResponse<Vendor>>(`/vendor/${id}`).then(unwrap),
+  create: (payload: {
+    businessName: string;
+    email: string;
+    phone?: string;
+    vendorGroupId?: string;
+  }) =>
+    api
+      .post<
+        ApiResponse<{ isSuccess: boolean; message: string; id?: string }>
+      >("/vendor", payload)
+      .then(unwrap),
+  update: (
+    id: string,
+    payload: { businessName: string; phone?: string; vendorGroupId?: string },
+  ) =>
+    api
+      .put<
+        ApiResponse<{ isSuccess: boolean; message: string }>
+      >(`/vendor/${id}`, payload)
+      .then(unwrap),
+  delete: (id: string) =>
+    api
+      .delete<
+        ApiResponse<{ isSuccess: boolean; message: string }>
+      >(`/vendor/${id}`)
+      .then(unwrap),
+  toggleStatus: (id: string) =>
+    api
+      .patch<
+        ApiResponse<{ isSuccess: boolean; message: string }>
+      >(`/vendor/${id}/toggle-status`, {})
+      .then(unwrap),
+};
+
+// ── Invoice Broadcasts ────────────────────────────────────────────────────────
+
+export interface BroadcastSummary {
+  id: string;
+  title: string;
+  invoiceTypeCode: string;
+  dueDate: string;
+  status: string;
+  requiresApproval: boolean;
+  currency: string;
+  totalVendors: number;
+  submittedCount: number;
+  createdAt: string;
+}
+
+export interface BroadcastDetail extends BroadcastSummary {
+  note?: string;
+  isApprovalLocked: boolean;
+  vendors: BroadcastVendorDto[];
+}
+
+export interface BroadcastVendorDto {
+  id: string;
+  vendorId: string;
+  vendorBusinessName: string;
+  vendorEmail: string;
+  invoiceId?: string;
+  isEmailVerified: boolean;
+  token: string;
+}
+
+export interface BroadcastSubmission {
+  broadcastVendorId: string;
+  vendorBusinessName: string;
+  vendorEmail: string;
+  invoiceId: string;
+  invoiceCode: string;
+  totalAmount: number;
+  paymentStatus: string;
+  invoiceStatus: string;
+  submittedAt?: string;
+}
+
+export interface CreateBroadcastPayload {
+  title: string;
+  invoiceTypeCode: string;
+  dueDate: string;
+  requiresApproval: boolean;
+  currency: string;
+  note?: string;
+  vendorIds?: string[];
+  vendorGroupId?: string;
+  frontendBaseUrl?: string;
+}
+
+export const broadcastApi = {
+  list: (params?: { page?: number; pageSize?: number; status?: string }) =>
+    api
+      .get<
+        ApiResponse<PaginatedResult<BroadcastSummary>>
+      >("/invoice-broadcast", { params })
+      .then(unwrap),
+  get: (id: string) =>
+    api
+      .get<ApiResponse<BroadcastDetail>>(`/invoice-broadcast/${id}`)
+      .then(unwrap),
+  create: (payload: CreateBroadcastPayload) =>
+    api
+      .post<
+        ApiResponse<{ isSuccess: boolean; message: string; id?: string }>
+      >("/invoice-broadcast", payload)
+      .then(unwrap),
+  update: (id: string, payload: { title: string; note?: string }) =>
+    api
+      .put<
+        ApiResponse<{ isSuccess: boolean; message: string }>
+      >(`/invoice-broadcast/${id}`, payload)
+      .then(unwrap),
+  extendDueDate: (id: string, newDueDate: string) =>
+    api
+      .patch<
+        ApiResponse<{ isSuccess: boolean; message: string }>
+      >(`/invoice-broadcast/${id}/extend-due-date`, { newDueDate })
+      .then(unwrap),
+  deactivate: (id: string) =>
+    api
+      .patch<
+        ApiResponse<{ message: string; hasPendingInvoices: boolean }>
+      >(`/invoice-broadcast/${id}/deactivate`, {})
+      .then(unwrap),
+  rejectAll: (id: string) =>
+    api
+      .post<
+        ApiResponse<{ message: string }>
+      >(`/invoice-broadcast/${id}/reject-all`, {})
+      .then(unwrap),
+  getSubmissions: (id: string, params?: { page?: number; pageSize?: number }) =>
+    api
+      .get<
+        ApiResponse<PaginatedResult<BroadcastSubmission>>
+      >(`/invoice-broadcast/${id}/submissions`, { params })
+      .then(unwrap),
+  markPaid: (invoiceIds: string[]) =>
+    api
+      .patch<
+        ApiResponse<{ message: string }>
+      >("/invoice-broadcast/submissions/mark-paid", { invoiceIds })
+      .then(unwrap),
+  markRejected: (invoiceIds: string[]) =>
+    api
+      .patch<
+        ApiResponse<{ message: string }>
+      >("/invoice-broadcast/submissions/mark-rejected", { invoiceIds })
+      .then(unwrap),
+};
+
+// ── Vendor Portal (public – no auth token) ────────────────────────────────────
+
+import axios from "axios";
+
+const vendorPortalClient = axios.create({
+  baseURL:
+    (import.meta.env.VITE_API_BASE_URL as string) ||
+    "http://localhost:5000/api/v1",
+  headers: { "Content-Type": "application/json" },
+});
+
+function vpUnwrap<T>(res: { data: ApiResponse<T> }) {
+  return res.data.data as T;
+}
+
+export interface VendorPortalForm {
+  broadcastTitle: string;
+  dueDate: string;
+  invoiceTypeCode: string;
+  currency: string;
+  requiresApproval: boolean;
+  note?: string;
+  tenantName: string;
+  vendorBusinessName: string;
+  vendorEmail: string;
+  isClosed: boolean;
+}
+
+export interface VendorPortalVerifyResponse {
+  vendorBusinessName?: string;
+  vendorEmail?: string;
+  vendorPhone?: string;
+  message: string;
+}
+
+export interface VendorLineItem {
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  unitOfMeasure?: string;
+}
+
+export const vendorPortalApi = {
+  getForm: (token: string) =>
+    vendorPortalClient
+      .get<ApiResponse<VendorPortalForm>>(`/vendor-portal/form/${token}`)
+      .then(vpUnwrap),
+  requestOtp: (token: string) =>
+    vendorPortalClient
+      .post<
+        ApiResponse<{ message: string }>
+      >(`/vendor-portal/request-otp/${token}`)
+      .then(vpUnwrap),
+  verifyOtp: (token: string, otp: string) =>
+    vendorPortalClient
+      .post<
+        ApiResponse<VendorPortalVerifyResponse>
+      >(`/vendor-portal/verify-otp/${token}`, { otp })
+      .then(vpUnwrap),
+  saveDraft: (token: string, lineItems: VendorLineItem[]) =>
+    vendorPortalClient
+      .post<
+        ApiResponse<{ message: string }>
+      >(`/vendor-portal/save-draft/${token}`, { lineItems })
+      .then(vpUnwrap),
+  submit: (token: string, lineItems: VendorLineItem[]) =>
+    vendorPortalClient
+      .post<
+        ApiResponse<{ message: string }>
+      >(`/vendor-portal/submit/${token}`, { lineItems })
+      .then(vpUnwrap),
+};
