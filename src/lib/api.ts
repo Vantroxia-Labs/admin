@@ -2,7 +2,10 @@ import api, { unwrap } from "./apiClient";
 import type { ApiResponse } from "./apiClient";
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
-export interface LoginPayload { email: string; password: string; }
+export interface LoginPayload {
+  email: string;
+  password: string;
+}
 export interface LoginResponse {
   accessToken: string;
   refreshToken: string;
@@ -47,22 +50,36 @@ export const authApi = {
     api.post<ApiResponse<LoginResponse>>("/auth/login", payload).then(unwrap),
 
   register: (payload: RegisterPayload) =>
-    api.post<ApiResponse<RegisterResponse>>("/auth/register", payload).then(unwrap),
+    api
+      .post<ApiResponse<RegisterResponse>>("/auth/register", payload)
+      .then(unwrap),
 
   logout: () => api.post("/auth/logout"),
 
-  refresh: () => api.post<ApiResponse<{ accessToken: string; expiresAt: string }>>("/auth/refresh").then(unwrap),
+  refresh: () =>
+    api
+      .post<
+        ApiResponse<{ accessToken: string; expiresAt: string }>
+      >("/auth/refresh")
+      .then(unwrap),
 
-  tokenClaims: () => api.get<ApiResponse<TokenClaims>>("/auth/token-claims").then(unwrap),
+  tokenClaims: () =>
+    api.get<ApiResponse<TokenClaims>>("/auth/token-claims").then(unwrap),
 
   sendOtp: (phoneNo_Email: string) =>
     api.post("/auth/forgot-password-request-otp", { phoneNo_Email }),
 
-  forgotPassword: (payload: { otp: string; password: string; phoneNo_Email: string }) =>
-    api.post("/auth/forgot-password", payload),
+  forgotPassword: (payload: {
+    otp: string;
+    password: string;
+    phoneNo_Email: string;
+  }) => api.post("/auth/forgot-password", payload),
 
-  changePassword: (payload: { currentPassword: string; newPassword: string; confirmNewPassword: string }) =>
-    api.post("/auth/change-password", payload),
+  changePassword: (payload: {
+    currentPassword: string;
+    newPassword: string;
+    confirmNewPassword: string;
+  }) => api.post("/auth/change-password", payload),
 };
 
 // ── Payment / Plans ───────────────────────────────────────────────────────────
@@ -88,7 +105,9 @@ export const paymentApi = {
     api.get<ApiResponse<SubscriptionPlan[]>>("/payment/plans").then(unwrap),
 
   verify: (reference: string) =>
-    api.get<ApiResponse<PaymentVerification>>(`/payment/verify/${reference}`).then(unwrap),
+    api
+      .get<ApiResponse<PaymentVerification>>(`/payment/verify/${reference}`)
+      .then(unwrap),
 };
 
 // ── Business ──────────────────────────────────────────────────────────────────
@@ -153,7 +172,9 @@ export const businessApi = {
     api.get<ApiResponse<BusinessProfile>>("/business/me").then(unwrap),
 
   getDashboardStats: () =>
-    api.get<ApiResponse<DashboardStats>>("/business/dashboard/stats").then(unwrap),
+    api
+      .get<ApiResponse<DashboardStats>>("/business/dashboard/stats")
+      .then(unwrap),
 
   updateNRSCredentials: (payload: { apiKey: string; clientSecret: string }) =>
     api.patch("/business/update-NRS-credentials", payload),
@@ -162,10 +183,18 @@ export const businessApi = {
     api.patch("/business/update-qrcode-configuration", payload),
 
   getSubscription: (businessId: string) =>
-    api.get(`/business/get-subscription/${businessId}`).then(r => r.data.data),
+    api
+      .get(`/business/get-subscription/${businessId}`)
+      .then((r) => r.data.data),
 
-  updateProfile: (payload: Partial<Omit<BusinessProfile, "id" | "isActive" | "onboardingCompleted">>) =>
-    api.patch<ApiResponse<BusinessProfile>>("/business/me", payload).then(unwrap),
+  updateProfile: (
+    payload: Partial<
+      Omit<BusinessProfile, "id" | "isActive" | "onboardingCompleted">
+    >,
+  ) =>
+    api
+      .patch<ApiResponse<BusinessProfile>>("/business/me", payload)
+      .then(unwrap),
 };
 
 // ── Invoices ──────────────────────────────────────────────────────────────────
@@ -183,7 +212,13 @@ export interface InvoiceSummary {
   partyName?: string;
   qrCodeImage?: string;
 }
-export interface PaginatedResult<T> { items: T[]; totalCount: number; pageNumber: number; pageSize: number; totalPages: number; }
+export interface PaginatedResult<T> {
+  items: T[];
+  totalCount: number;
+  pageNumber: number;
+  pageSize: number;
+  totalPages: number;
+}
 export interface DocumentReferenceDto {
   irn: string;
   issueDate: string;
@@ -213,15 +248,15 @@ export interface InvoiceItemPayload {
   lineDiscount?: number;
 }
 
-// ── FIRS ──────────────────────────────────────────────────────────────────────
+// ── NRS ──────────────────────────────────────────────────────────────────────
 export interface TaxCategory {
   code: string;
   value: string;
   percent: string; // "7.5", "0.0", "Not Available", or ""
 }
-export const firsApi = {
+export const NRSApi = {
   getTaxCategories: () =>
-    api.get<ApiResponse<TaxCategory[]>>("/FIRS/gettaxcategories").then(unwrap),
+    api.get<ApiResponse<TaxCategory[]>>("/NRS/gettaxcategories").then(unwrap),
 };
 
 export interface UploadInvoiceResult {
@@ -268,28 +303,46 @@ export interface FlowRulePayload {
 
 export const invoiceApi = {
   list: (params?: { page?: number; pageSize?: number; status?: string }) =>
-    api.get<ApiResponse<PaginatedResult<InvoiceSummary>>>("/invoice", { params }).then(unwrap),
+    api
+      .get<ApiResponse<PaginatedResult<InvoiceSummary>>>("/invoice", { params })
+      .then(unwrap),
 
-  get: (id: string) => api.get<ApiResponse<unknown>>(`/invoice/${id}`).then(unwrap),
+  get: (id: string) =>
+    api.get<ApiResponse<unknown>>(`/invoice/${id}`).then(unwrap),
 
   create: (payload: CreateInvoicePayload) =>
     api.post<ApiResponse<InvoiceSummary>>("/invoice", payload).then(unwrap),
 
-  approve: (id: string, comments?: string) => api.post(`/invoice/${id}/approve`, comments ? { comments } : {}),
+  approve: (id: string, comments?: string) =>
+    api.post(`/invoice/${id}/approve`, comments ? { comments } : {}),
 
-  reject: (id: string, reason: string) => api.post(`/invoice/${id}/reject`, { reason }),
+  reject: (id: string, reason: string) =>
+    api.post(`/invoice/${id}/reject`, { reason }),
 
   pendingApproval: (params?: { page?: number; pageSize?: number }) =>
-    api.get<ApiResponse<PaginatedResult<InvoiceSummary>>>("/invoice/pending-approval", { params }).then(unwrap),
+    api
+      .get<
+        ApiResponse<PaginatedResult<InvoiceSummary>>
+      >("/invoice/pending-approval", { params })
+      .then(unwrap),
 
   submitToNRS: (id: string) =>
-    api.post<ApiResponse<SubmitInvoiceResult>>(`/invoice/submit-invoice/${id}`).then(unwrap),
+    api
+      .post<ApiResponse<SubmitInvoiceResult>>(`/invoice/submit-invoice/${id}`)
+      .then(unwrap),
 
-  updatePaymentStatus: (payload: { invoiceId: string; paymentStatus: string; paymentReference?: string }) =>
-    api.put("/invoice/update-invoice-payment-status", payload),
+  updatePaymentStatus: (payload: {
+    invoiceId: string;
+    paymentStatus: string;
+    paymentReference?: string;
+  }) => api.put("/invoice/update-invoice-payment-status", payload),
 
   receivedList: (params?: { page?: number; pageSize?: number }) =>
-    api.get<ApiResponse<PaginatedResult<InvoiceSummary>>>("/invoice/received-invoices", { params }).then(unwrap),
+    api
+      .get<
+        ApiResponse<PaginatedResult<InvoiceSummary>>
+      >("/invoice/received-invoices", { params })
+      .then(unwrap),
 
   /** Upload an Excel file of invoices. Returns a summary of successes/failures. */
   bulkUpload: (file: File) => {
@@ -331,7 +384,11 @@ export interface TinValidationResult {
 
 export const tinValidationApi = {
   validate: (tin: string) =>
-    api.post<ApiResponse<TinValidationResult>>("/TinValidation/validate", { tin }).then(unwrap),
+    api
+      .post<
+        ApiResponse<TinValidationResult>
+      >("/TinValidation/validate", { tin })
+      .then(unwrap),
 };
 
 // ── Parties ───────────────────────────────────────────────────────────────────
@@ -369,9 +426,15 @@ export interface CreatePartyPayload {
 
 export const partyApi = {
   list: (params?: { page?: number; pageSize?: number; searchTerm?: string }) =>
-    api.get<ApiResponse<PaginatedResult<Party>>>("/party", { params }).then(unwrap),
-  create: (payload: CreatePartyPayload) => api.post<ApiResponse<Party>>("/party", payload).then(unwrap),
-  update: (id: string, payload: Partial<Omit<CreatePartyPayload, "description">>) => api.put(`/party/${id}`, payload),
+    api
+      .get<ApiResponse<PaginatedResult<Party>>>("/party", { params })
+      .then(unwrap),
+  create: (payload: CreatePartyPayload) =>
+    api.post<ApiResponse<Party>>("/party", payload).then(unwrap),
+  update: (
+    id: string,
+    payload: Partial<Omit<CreatePartyPayload, "description">>,
+  ) => api.put(`/party/${id}`, payload),
   delete: (id: string) => api.delete(`/party/${id}`),
 };
 
@@ -392,9 +455,15 @@ export interface CreateBusinessItemPayload {
 
 export const businessItemApi = {
   list: (params?: { page?: number; pageSize?: number }) =>
-    api.get<ApiResponse<PaginatedResult<BusinessItem>>>("/businessitem", { params }).then(unwrap),
-  create: (payload: CreateBusinessItemPayload) => api.post<ApiResponse<BusinessItem>>("/businessitem", payload).then(unwrap),
-  update: (id: string, payload: Partial<CreateBusinessItemPayload>) => api.put(`/businessitem/${id}`, payload),
+    api
+      .get<
+        ApiResponse<PaginatedResult<BusinessItem>>
+      >("/businessitem", { params })
+      .then(unwrap),
+  create: (payload: CreateBusinessItemPayload) =>
+    api.post<ApiResponse<BusinessItem>>("/businessitem", payload).then(unwrap),
+  update: (id: string, payload: Partial<CreateBusinessItemPayload>) =>
+    api.put(`/businessitem/${id}`, payload),
   delete: (id: string) => api.delete(`/businessitem/${id}`),
 };
 
@@ -417,26 +486,48 @@ export interface CreateUserPayload {
 }
 
 export const userMgmtApi = {
-  list: () => api.get<ApiResponse<UserSummary[]>>("/usermanagement/users").then(unwrap),
-  create: (payload: CreateUserPayload) => api.post<ApiResponse<UserSummary>>("/usermanagement/users", payload).then(unwrap),
-  activate: (userId: string) => api.post(`/usermanagement/users/${userId}/activate`),
-  deactivate: (userId: string) => api.post(`/usermanagement/users/${userId}/deactivate`),
-  resetPassword: (userId: string) => api.post(`/usermanagement/users/${userId}/reset-password`),
-  assignRole: (userId: string, roleId: string) => api.post(`/usermanagement/users/${userId}/roles`, { roleId }),
+  list: () =>
+    api.get<ApiResponse<UserSummary[]>>("/usermanagement/users").then(unwrap),
+  create: (payload: CreateUserPayload) =>
+    api
+      .post<ApiResponse<UserSummary>>("/usermanagement/users", payload)
+      .then(unwrap),
+  activate: (userId: string) =>
+    api.post(`/usermanagement/users/${userId}/activate`),
+  deactivate: (userId: string) =>
+    api.post(`/usermanagement/users/${userId}/deactivate`),
+  resetPassword: (userId: string) =>
+    api.post(`/usermanagement/users/${userId}/reset-password`),
+  assignRole: (userId: string, roleId: string) =>
+    api.post(`/usermanagement/users/${userId}/roles`, { roleId }),
 };
 
 // ── Miscellaneous ─────────────────────────────────────────────────────────────
 export const miscApi = {
-  getIndustries: () => api.get<ApiResponse<{ name: string }[]>>("/miscellenous/industry").then(unwrap),
-  getStates: () => api.get<ApiResponse<{ name: string }[]>>("/miscellenous/states").then(unwrap),
-  getCities: (state: string) => api.get<ApiResponse<{ name: string }[]>>(`/miscellenous/cities/${state}`).then(unwrap),
+  getIndustries: () =>
+    api
+      .get<ApiResponse<{ name: string }[]>>("/miscellenous/industry")
+      .then(unwrap),
+  getStates: () =>
+    api
+      .get<ApiResponse<{ name: string }[]>>("/miscellenous/states")
+      .then(unwrap),
+  getCities: (state: string) =>
+    api
+      .get<ApiResponse<{ name: string }[]>>(`/miscellenous/cities/${state}`)
+      .then(unwrap),
 };
 
 // ── Flow Rules ───────────────────────────────────────────────────────────────
 export const flowRuleApi = {
-  getAll: () => api.get<ApiResponse<FlowRule[]>>("/Business/flowrules").then(unwrap),
+  getAll: () =>
+    api.get<ApiResponse<FlowRule[]>>("/Business/flowrules").then(unwrap),
   upsert: (payload: FlowRulePayload) =>
-    api.post<ApiResponse<{ flowRuleId: string; message: string }>>("/Business/upsert-flowrule", payload).then(unwrap),
+    api
+      .post<
+        ApiResponse<{ flowRuleId: string; message: string }>
+      >("/Business/upsert-flowrule", payload)
+      .then(unwrap),
   delete: (id: string) => api.delete(`/Business/delete-flowrule/${id}`),
 };
 
@@ -460,7 +551,11 @@ export interface VatRemittanceReport {
 
 export const vatApi = {
   getReport: (startDate: string, endDate: string) =>
-    api.get<ApiResponse<VatRemittanceReport>>("/invoice/vat-remittance", { params: { startDate, endDate } }).then(unwrap),
+    api
+      .get<
+        ApiResponse<VatRemittanceReport>
+      >("/invoice/vat-remittance", { params: { startDate, endDate } })
+      .then(unwrap),
 };
 
 // ── Profile ───────────────────────────────────────────────────────────────────
@@ -503,16 +598,24 @@ export interface VatSchedule {
 
 export const scheduleApi = {
   list: (year?: number) =>
-    api.get<ApiResponse<VatSchedule[]>>("/vat-schedule", { params: year ? { year } : undefined }).then(unwrap),
+    api
+      .get<
+        ApiResponse<VatSchedule[]>
+      >("/vat-schedule", { params: year ? { year } : undefined })
+      .then(unwrap),
 
   generate: (year: number, month: number) =>
-    api.post<ApiResponse<VatSchedule>>("/vat-schedule/generate", { year, month }).then(unwrap),
+    api
+      .post<ApiResponse<VatSchedule>>("/vat-schedule/generate", { year, month })
+      .then(unwrap),
 
   getWithItems: (id: string) =>
     api.get<ApiResponse<VatSchedule>>(`/vat-schedule/${id}`).then(unwrap),
 
   markFiled: (id: string) =>
-    api.patch<ApiResponse<VatSchedule>>(`/vat-schedule/${id}/mark-filed`).then(unwrap),
+    api
+      .patch<ApiResponse<VatSchedule>>(`/vat-schedule/${id}/mark-filed`)
+      .then(unwrap),
 
   /** Returns an XLSX blob */
   export: (id: string) =>
@@ -532,15 +635,47 @@ export interface InvoiceSummaryMetrics {
   vatOnVendorPercentageChange: number;
   totalInvoiceValuePercentageChange: number;
 }
-export interface MonthlyBase { year: number; month: number; monthName: string; name: string; }
-export interface SalesVsPurchasesMonthly    extends MonthlyBase { salesAmount: number; purchasesAmount: number; }
-export interface VATTrendMonthly            extends MonthlyBase { inputVAT: number; outputVAT: number; }
-export interface SalesAndPaymentMonthly     extends MonthlyBase { sales: number; payment: number; }
-export interface SalesPerRegionMonthly     extends MonthlyBase { region: string; salesAmount: number; }
-export interface SalesPerParty { partyName: string; totalSalesAmount: number; invoiceCount: number; }
-export interface CurrencyAmount { currency: string; currencyName: string; amount: number; }
-export interface VATByCurrencyMonthly       extends MonthlyBase { currencyAmounts: CurrencyAmount[]; }
-export interface VATVsNonVATMonthly         extends MonthlyBase { salesVatable: number; salesNonVatable: number; purchaseVatable: number; purchaseNonVatable: number; }
+export interface MonthlyBase {
+  year: number;
+  month: number;
+  monthName: string;
+  name: string;
+}
+export interface SalesVsPurchasesMonthly extends MonthlyBase {
+  salesAmount: number;
+  purchasesAmount: number;
+}
+export interface VATTrendMonthly extends MonthlyBase {
+  inputVAT: number;
+  outputVAT: number;
+}
+export interface SalesAndPaymentMonthly extends MonthlyBase {
+  sales: number;
+  payment: number;
+}
+export interface SalesPerRegionMonthly extends MonthlyBase {
+  region: string;
+  salesAmount: number;
+}
+export interface SalesPerParty {
+  partyName: string;
+  totalSalesAmount: number;
+  invoiceCount: number;
+}
+export interface CurrencyAmount {
+  currency: string;
+  currencyName: string;
+  amount: number;
+}
+export interface VATByCurrencyMonthly extends MonthlyBase {
+  currencyAmounts: CurrencyAmount[];
+}
+export interface VATVsNonVATMonthly extends MonthlyBase {
+  salesVatable: number;
+  salesNonVatable: number;
+  purchaseVatable: number;
+  purchaseNonVatable: number;
+}
 
 export interface AnalyticsV2Result {
   generalDashboard?: {
@@ -561,16 +696,28 @@ export interface AnalyticsV2Result {
 
 export const analyticsV2Api = {
   get: (dashboardType: 0 | 1) => {
-    const root = (import.meta.env.VITE_API_BASE_URL as string || "http://localhost:5000/api/v1").replace(/\/v1$/, "");
+    const root = (
+      (import.meta.env.VITE_API_BASE_URL as string) ||
+      "http://localhost:5000/api/v1"
+    ).replace(/\/v1$/, "");
     return api
-      .get<ApiResponse<AnalyticsV2Result>>(`${root}/v2/business/dashboard-analytics`, { params: { dashboardType } })
+      .get<
+        ApiResponse<AnalyticsV2Result>
+      >(`${root}/v2/business/dashboard-analytics`, { params: { dashboardType } })
       .then(unwrap);
   },
   /** Fetch both dashboards in parallel and merge into a single result. */
   getAll: (): Promise<Required<AnalyticsV2Result>> => {
-    const root = (import.meta.env.VITE_API_BASE_URL as string || "http://localhost:5000/api/v1").replace(/\/v1$/, "");
+    const root = (
+      (import.meta.env.VITE_API_BASE_URL as string) ||
+      "http://localhost:5000/api/v1"
+    ).replace(/\/v1$/, "");
     const call = (t: 0 | 1) =>
-      api.get<ApiResponse<AnalyticsV2Result>>(`${root}/v2/business/dashboard-analytics`, { params: { dashboardType: t } }).then(unwrap);
+      api
+        .get<
+          ApiResponse<AnalyticsV2Result>
+        >(`${root}/v2/business/dashboard-analytics`, { params: { dashboardType: t } })
+        .then(unwrap);
     return Promise.all([call(0), call(1)]).then(([g, v]) => ({
       generalDashboard: g.generalDashboard!,
       vatTableDashboard: v.vatTableDashboard!,
