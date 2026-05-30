@@ -90,6 +90,7 @@ export default function InvoiceDetail() {
   const [paymentModal, setPaymentModal] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState("PAID");
   const [paymentRef, setPaymentRef] = useState("");
+  const [partialAmount, setPartialAmount] = useState("");
   const [submissionResult, setSubmissionResult] =
     useState<SubmitInvoiceResult | null>(null);
 
@@ -164,6 +165,10 @@ export default function InvoiceDetail() {
       );
       return;
     }
+    if (paymentStatus === "PARTIAL" && !partialAmount.trim()) {
+      toast.error("An amount is required when marking an invoice as Partial.");
+      return;
+    }
     setUpdatingPayment(true);
     try {
       if (USE_MOCK) {
@@ -174,11 +179,13 @@ export default function InvoiceDetail() {
         await invoiceApi.updatePaymentStatus(invoice.id, {
           paymentStatus,
           reference: paymentRef || undefined,
+          amount: paymentStatus === "PARTIAL" ? parseFloat(partialAmount) : undefined,
         });
         setInvoice((prev) => (prev ? { ...prev, paymentStatus } : prev));
         toast.success("Payment status updated.");
       }
       setPaymentModal(false);
+      setPartialAmount("");
     } catch {
       toast.error("Failed to update payment status.");
     } finally {
@@ -718,11 +725,12 @@ export default function InvoiceDetail() {
                 </label>
                 <select
                   value={paymentStatus}
-                  onChange={(e) => setPaymentStatus(e.target.value)}
+                  onChange={(e) => { setPaymentStatus(e.target.value); setPartialAmount(""); }}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500"
                 >
                   <option value="PAID">Paid</option>
                   <option value="REJECTED">Rejected</option>
+                  <option value="PARTIAL">Partial</option>
                 </select>
               </div>
               {paymentStatus === "PAID" && (
@@ -734,6 +742,22 @@ export default function InvoiceDetail() {
                     value={paymentRef}
                     onChange={(e) => setPaymentRef(e.target.value)}
                     placeholder="e.g. TRX-20260330-001"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  />
+                </div>
+              )}
+              {paymentStatus === "PARTIAL" && (
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
+                    Amount Paid <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={partialAmount}
+                    onChange={(e) => setPartialAmount(e.target.value)}
+                    placeholder="e.g. 5000.00"
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500"
                   />
                 </div>

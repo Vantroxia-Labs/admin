@@ -251,15 +251,21 @@ export default function InvoiceList() {
   } | null>(null);
   const [payStatus, setPayStatus] = useState("PAID");
   const [payReference, setPayReference] = useState("");
+  const [payPartialAmount, setPayPartialAmount] = useState("");
   const [updatingPay, setUpdatingPay] = useState(false);
 
   const handleUpdatePaymentStatus = async () => {
     if (!payModal) return;
+    if (payStatus === "PARTIAL" && !payPartialAmount.trim()) {
+      toast.error("An amount is required when marking an invoice as Partial.");
+      return;
+    }
     setUpdatingPay(true);
     try {
       await invoiceApi.updatePaymentStatus(payModal.id, {
         paymentStatus: payStatus,
         reference: payReference.trim() || undefined,
+        amount: payStatus === "PARTIAL" ? parseFloat(payPartialAmount) : undefined,
       });
       toast.success(`Payment status updated to ${payStatus}.`);
       setInvoices((prev) =>
@@ -269,6 +275,7 @@ export default function InvoiceList() {
       );
       setPayModal(null);
       setPayReference("");
+      setPayPartialAmount("");
     } catch {
       toast.error("Failed to update payment status.");
     } finally {
@@ -1637,10 +1644,12 @@ export default function InvoiceList() {
                 </label>
                 <select
                   value={payStatus}
-                  onChange={(e) => setPayStatus(e.target.value)}
+                  onChange={(e) => { setPayStatus(e.target.value); setPayPartialAmount(""); }}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-xl text-sm bg-white dark:bg-gray-900 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
                 >
                   <option value="PAID">Paid</option>
+                  <option value="REJECTED">Rejected</option>
+                  <option value="PARTIAL">Partial</option>
                 </select>
               </div>
               <div>
@@ -1702,6 +1711,31 @@ export default function InvoiceList() {
                   </p>
                 )}
               </div>
+              {payStatus === "PARTIAL" && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Amount Paid <span className="text-red-500 font-normal">*required</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={payPartialAmount}
+                    onChange={(e) => setPayPartialAmount(e.target.value)}
+                    placeholder="e.g. 5000.00"
+                    className={`w-full px-3 py-2 border rounded-xl text-sm bg-white dark:bg-gray-900 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 ${
+                      !payPartialAmount.trim()
+                        ? "border-red-300 dark:border-red-700"
+                        : "border-gray-300 dark:border-gray-600"
+                    }`}
+                  />
+                  {!payPartialAmount.trim() && (
+                    <p className="mt-1 text-xs text-red-500">
+                      An amount is required when marking an invoice as Partial.
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
             <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-200 dark:border-gray-700">
               <button
@@ -1717,7 +1751,9 @@ export default function InvoiceList() {
               <button
                 onClick={handleUpdatePaymentStatus}
                 disabled={
-                  updatingPay || (payStatus === "PAID" && !payReference.trim())
+                  updatingPay ||
+                  (payStatus === "PAID" && !payReference.trim()) ||
+                  (payStatus === "PARTIAL" && !payPartialAmount.trim())
                 }
                 className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-xl disabled:opacity-50 transition-colors min-w-20"
               >

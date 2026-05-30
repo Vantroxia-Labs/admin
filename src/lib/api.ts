@@ -560,7 +560,7 @@ export const invoiceApi = {
 
   updatePaymentStatus: (
     id: string,
-    payload: { paymentStatus: string; reference?: string },
+    payload: { paymentStatus: string; reference?: string; amount?: number },
   ) => api.patch(`/invoice/update-payment-status/${id}`, payload),
 
   receivedList: (params?: { page?: number; pageSize?: number; environmentMode?: AppEnvironmentMode }) =>
@@ -581,7 +581,7 @@ export const invoiceApi = {
 
   updateReceivedInvoicePaymentStatus: (
     id: string,
-    payload: { paymentStatus: string; reference?: string },
+    payload: { paymentStatus: string; reference?: string; amount?: number },
   ) =>
     api.patch(
       `/invoice/received-invoices/update-payment-status/${id}`,
