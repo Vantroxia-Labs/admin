@@ -294,6 +294,13 @@ export interface InvoiceItem {
   taxCategories?: BusinessItemTaxCategory[];
 }
 
+export interface InvoicePaymentRecord {
+  id: string;
+  amount: number;
+  reference?: string;
+  paidAt: string;
+}
+
 export interface InvoiceSummary {
   id: string;
   invoiceCode: string;
@@ -308,6 +315,9 @@ export interface InvoiceSummary {
   partyName?: string;
   qrCodeImage?: string;
   invoiceItems?: InvoiceItem[];
+  paymentHistory?: InvoicePaymentRecord[];
+  amountPaid?: number;
+  outstandingAmount?: number;
 }
 export interface PaginatedResult<T> {
   items: T[];
@@ -453,7 +463,8 @@ export interface UploadInvoiceResult {
   statusCodes: number;
 }
 export interface PipelineStepResult {
-  success: boolean;
+  success?: boolean;
+  status?: string; // backend sends "SUCCESS" | "FAILED"
   message?: string;
 }
 export interface SubmitInvoiceResult {
@@ -532,7 +543,7 @@ export const invoiceApi = {
     api.get<ApiResponse<{ invoice: InvoiceSummary }>>(`/invoice/${id}`).then(unwrap).then(data => data.invoice),
 
   create: (payload: CreateInvoicePayload) =>
-    api.post<ApiResponse<InvoiceSummary>>("/invoice", payload).then(unwrap),
+    api.post<ApiResponse<{ invoiceId: string }>>("/invoice", payload).then(unwrap),
 
   approve: (id: string, comments?: string) =>
     api.post(`/invoice/${id}/approve`, comments ? { comments } : {}),
@@ -827,6 +838,12 @@ export const businessesApi = {
         ApiResponse<{ businessId: string; message: string }>
       >("/aegisadmin/create-business", payload)
       .then(unwrap),
+  getById: (businessId: string) =>
+    api
+      .get<ApiResponse<BusinessDetail>>(
+        `/business/fetch-business?businessId=${businessId}`,
+      )
+      .then(unwrap),
   update: (businessId: string, payload: UpdateBusinessByAdminPayload) =>
     api
       .put<
@@ -834,6 +851,26 @@ export const businessesApi = {
       >(`/business/update-business/${businessId}`, payload)
       .then(unwrap),
 };
+
+export interface BusinessDetail {
+  id: string;
+  name: string;
+  description?: string;
+  industry?: string;
+  tin?: string;
+  invoicePrefix?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  registeredAddress?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    country?: string;
+    postalCode?: string;
+    lga?: string;
+  };
+  status?: string;
+}
 
 export interface UpdateBusinessByAdminPayload {
   industry: string;

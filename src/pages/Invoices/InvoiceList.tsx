@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
 import toast from "react-hot-toast";
-import { SkeletonTableRows } from "../../components/ui/skeleton/Skeleton";
+import {
+  SkeletonTableRows,
+  SkeletonDots,
+} from "../../components/ui/skeleton/Skeleton";
 import PageMeta from "../../components/common/PageMeta";
 import TablePagination from "../../components/common/TablePagination";
 import {
@@ -265,7 +268,8 @@ export default function InvoiceList() {
       await invoiceApi.updatePaymentStatus(payModal.id, {
         paymentStatus: payStatus,
         reference: payReference.trim() || undefined,
-        amount: payStatus === "PARTIAL" ? parseFloat(payPartialAmount) : undefined,
+        amount:
+          payStatus === "PARTIAL" ? parseFloat(payPartialAmount) : undefined,
       });
       toast.success(`Payment status updated to ${payStatus}.`);
       setInvoices((prev) =>
@@ -707,25 +711,7 @@ export default function InvoiceList() {
                 >
                   {uploading ? (
                     <span className="inline-flex items-center gap-2">
-                      <svg
-                        className="w-4 h-4 animate-spin"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8v8H4z"
-                        />
-                      </svg>
+                      <SkeletonDots />
                       Uploading...
                     </span>
                   ) : (
@@ -939,25 +925,7 @@ export default function InvoiceList() {
                               >
                                 {pushingNRS.has(inv.id) ? (
                                   <>
-                                    <svg
-                                      className="w-3 h-3 animate-spin"
-                                      fill="none"
-                                      viewBox="0 0 24 24"
-                                    >
-                                      <circle
-                                        className="opacity-25"
-                                        cx="12"
-                                        cy="12"
-                                        r="10"
-                                        stroke="currentColor"
-                                        strokeWidth="4"
-                                      />
-                                      <path
-                                        className="opacity-75"
-                                        fill="currentColor"
-                                        d="M4 12a8 8 0 018-8v8H4z"
-                                      />
-                                    </svg>
+                                    <SkeletonDots />
                                     Pushing...
                                   </>
                                 ) : (
@@ -1644,7 +1612,10 @@ export default function InvoiceList() {
                 </label>
                 <select
                   value={payStatus}
-                  onChange={(e) => { setPayStatus(e.target.value); setPayPartialAmount(""); }}
+                  onChange={(e) => {
+                    setPayStatus(e.target.value);
+                    setPayPartialAmount("");
+                  }}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-xl text-sm bg-white dark:bg-gray-900 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
                 >
                   <option value="PAID">Paid</option>
@@ -1714,7 +1685,8 @@ export default function InvoiceList() {
               {payStatus === "PARTIAL" && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Amount Paid <span className="text-red-500 font-normal">*required</span>
+                    Amount Paid{" "}
+                    <span className="text-red-500 font-normal">*required</span>
                   </label>
                   <input
                     type="number"

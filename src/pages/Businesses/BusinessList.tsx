@@ -1,13 +1,18 @@
 ﻿import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { normalizePhone } from "../../lib/phoneUtils";
 import PageMeta from "../../components/common/PageMeta";
 import TablePagination from "../../components/common/TablePagination";
-import { SkeletonTableRows } from "../../components/ui/skeleton/Skeleton";
+import {
+  SkeletonTableRows,
+  SkeletonPlanCards,
+} from "../../components/ui/skeleton/Skeleton";
 import {
   businessesApi,
   paymentApi,
   NRSApi,
   type BusinessSummary,
+  type BusinessDetail,
   type SubscriptionPlan,
   type CreateBusinessByAdminPayload,
   type UpdateBusinessByAdminPayload,
@@ -223,7 +228,7 @@ export default function BusinessList() {
       adminFirstName: createForm.adminFirstName,
       adminLastName: createForm.adminLastName,
       adminEmail: createForm.adminEmail,
-      adminPhone: createForm.adminPhone,
+      adminPhone: normalizePhone(createForm.adminPhone),
       businessName: createForm.businessName,
       businessDescription: createForm.businessDescription,
       tin: createForm.tin,
@@ -291,23 +296,28 @@ export default function BusinessList() {
     "Other",
   ];
 
-  const openEditPanel = (business: BusinessSummary) => {
+  const openEditPanel = async (business: BusinessSummary) => {
     setEditBusiness(business);
-    setEditForm({
-      industry: business.industry ?? "",
-      description: "",
-      invoicePrefix: "",
-      contactEmail: business.contactEmail ?? "",
-      contactPhone: "",
-      street: "",
-      city: "",
-      state: "",
-      country: "NG",
-      postalCode: "",
-      lga: "",
-    });
     setEditErrors({});
     setShowEditPanel(true);
+    try {
+      const detail: BusinessDetail = await businessesApi.getById(business.id);
+      setEditForm({
+        industry: detail.industry ?? "",
+        description: detail.description ?? "",
+        invoicePrefix: detail.invoicePrefix ?? "",
+        contactEmail: detail.contactEmail ?? "",
+        contactPhone: detail.contactPhone ?? "",
+        street: detail.registeredAddress?.street ?? "",
+        city: detail.registeredAddress?.city ?? "",
+        state: detail.registeredAddress?.state ?? "",
+        country: detail.registeredAddress?.country ?? "NG",
+        postalCode: detail.registeredAddress?.postalCode ?? "",
+        lga: detail.registeredAddress?.lga ?? "",
+      });
+    } catch {
+      toast.error("Failed to load business details.");
+    }
   };
 
   const closeEditPanel = () => {
@@ -333,7 +343,7 @@ export default function BusinessList() {
       description: editForm.description || "N/A",
       invoicePrefix: editForm.invoicePrefix || "INV",
       contactEmail: editForm.contactEmail,
-      contactPhone: editForm.contactPhone || "N/A",
+      contactPhone: normalizePhone(editForm.contactPhone) || "N/A",
       registeredAddress: {
         street: editForm.street || "N/A",
         city: editForm.city || "N/A",
@@ -914,8 +924,8 @@ export default function BusinessList() {
                     </span>
                   </div>
                   {loadingPlans ? (
-                    <div className="flex justify-center py-4">
-                      <div className="w-6 h-6 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
+                    <div className="py-2">
+                      <SkeletonPlanCards />
                     </div>
                   ) : plans?.length === 0 ? (
                     <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">

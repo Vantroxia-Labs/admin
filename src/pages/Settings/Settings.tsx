@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import toast from "react-hot-toast";
+import { normalizePhone } from "../../lib/phoneUtils";
 import PageMeta from "../../components/common/PageMeta";
 import {
   businessApi,
@@ -34,6 +35,10 @@ import {
   useAuth,
 } from "../../context/AuthContext";
 import { useEnvMode } from "../../context/EnvModeContext";
+import {
+  SkeletonSettingsPage,
+  SkeletonInlineSection,
+} from "../../components/ui/skeleton/Skeleton";
 
 const inputCls =
   "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500";
@@ -372,7 +377,7 @@ export default function Settings() {
         serviceId: profileForm.serviceId,
         description: profileForm.description,
         contactEmail: profileForm.contactEmail,
-        contactPhone: profileForm.contactPhone,
+        contactPhone: normalizePhone(profileForm.contactPhone),
         industry: profileForm.industry,
         registeredAddress: {
           street: profileForm.street,
@@ -417,7 +422,9 @@ export default function Settings() {
       });
       toast.success("NRS credentials updated.");
       setNRS({ apiKey: "", clientSecret: "" });
-      setProfile((prev) => prev ? { ...prev, hasNrsCredentials: true } : prev);
+      setProfile((prev) =>
+        prev ? { ...prev, hasNrsCredentials: true } : prev,
+      );
     } catch (err: unknown) {
       const e = err as { response?: { data?: { message?: string } } };
       toast.error(
@@ -439,7 +446,7 @@ export default function Settings() {
       await businessApi.updateQrCodeConfig(qr);
       toast.success("QR code configuration updated.");
       setQr({ publicKey: "", certificate: "" });
-      setProfile((prev) => prev ? { ...prev, hasQrCodeConfig: true } : prev);
+      setProfile((prev) => (prev ? { ...prev, hasQrCodeConfig: true } : prev));
     } catch (err: unknown) {
       const e = err as { response?: { data?: { message?: string } } };
       toast.error(e?.response?.data?.message || "Failed to update QR config.");
@@ -528,9 +535,7 @@ export default function Settings() {
       if (USE_MOCK) {
         await new Promise<void>((r) => setTimeout(r, 700));
         setFlowRule((prev) =>
-          prev
-            ? { ...prev, ...payload }
-            : { id: "rule-new", ...payload },
+          prev ? { ...prev, ...payload } : { id: "rule-new", ...payload },
         );
         toast.success("Approval threshold saved.");
       } else {
@@ -546,7 +551,11 @@ export default function Settings() {
         if (active) setThresholdAmount(String(active.minAmount));
       }
     } catch (err: unknown) {
-      const e = err as { response?: { data?: { message?: string; data?: { value?: { message?: string } } } } };
+      const e = err as {
+        response?: {
+          data?: { message?: string; data?: { value?: { message?: string } } };
+        };
+      };
       const msg =
         e?.response?.data?.data?.value?.message ||
         e?.response?.data?.message ||
@@ -565,27 +574,29 @@ export default function Settings() {
         await new Promise<void>((r) => setTimeout(r, 700));
         setFlowRule(null);
         setThresholdAmount("");
-        toast.success("Approval rule removed. All invoices will be auto-approved.");
+        toast.success(
+          "Approval rule removed. All invoices will be auto-approved.",
+        );
       } else {
         await flowRuleApi.delete(flowRule.id);
         setFlowRule(null);
         setThresholdAmount("");
-        toast.success("Approval rule removed. All invoices will be auto-approved.");
+        toast.success(
+          "Approval rule removed. All invoices will be auto-approved.",
+        );
       }
     } catch (err: unknown) {
       const e = err as { response?: { data?: { message?: string } } };
-      toast.error(e?.response?.data?.message || "Failed to remove approval rule.");
+      toast.error(
+        e?.response?.data?.message || "Failed to remove approval rule.",
+      );
     } finally {
       setSavingFlowRule(false);
     }
   };
 
   if (loadingProfile && !isAegis) {
-    return (
-      <div className="flex items-center justify-center min-h-64">
-        <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <SkeletonSettingsPage />;
   }
 
   return (
@@ -713,7 +724,11 @@ export default function Settings() {
             {profile && (
               <Section
                 title="Business Profile"
-                description={canEdit ? "Manage your core registration details, contact info, and address." : "Core registration details (read-only)"}
+                description={
+                  canEdit
+                    ? "Manage your core registration details, contact info, and address."
+                    : "Core registration details (read-only)"
+                }
               >
                 {canEdit ? (
                   <form onSubmit={handleSaveProfile} className="space-y-6">
@@ -745,7 +760,7 @@ export default function Settings() {
                           </span>
                         </div>
                       </div>
-                      
+
                       <div className="flex flex-col gap-1">
                         <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
                           Reg. Number
@@ -799,260 +814,260 @@ export default function Settings() {
                     <hr className="border-gray-200 dark:border-gray-700" />
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="flex flex-col gap-1">
-                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                        Contact Email
-                      </label>
-                      <input
-                        value={profileForm.contactEmail}
-                        onChange={(e) =>
-                          setProfileForm((f) => ({
-                            ...f,
-                            contactEmail: e.target.value,
-                          }))
-                        }
-                        className={`${inputCls} bg-gray-50 dark:bg-gray-700/50 cursor-not-allowed opacity-80`}
-                        type="email"
-                        placeholder="contact@business.com"
-                        disabled
-                      />
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                        Contact Phone
-                      </label>
-                      <input
-                        value={profileForm.contactPhone}
-                        onChange={(e) =>
-                          setProfileForm((f) => ({
-                            ...f,
-                            contactPhone: e.target.value,
-                          }))
-                        }
-                        className={inputCls}
-                        placeholder="+234..."
-                      />
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                        Industry
-                      </label>
-                      <select
-                        value={profileForm.industry}
-                        onChange={(e) =>
-                          setProfileForm((f) => ({
-                            ...f,
-                            industry: e.target.value,
-                          }))
-                        }
-                        className={inputCls}
-                      >
-                        <option value="">Select industry</option>
-                        {industries.map((ind) => (
-                          <option key={ind} value={ind}>
-                            {ind}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="flex flex-col gap-1 sm:col-span-2">
-                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                        Description
-                      </label>
-                      <textarea
-                        value={profileForm.description}
-                        onChange={(e) =>
-                          setProfileForm((f) => ({
-                            ...f,
-                            description: e.target.value,
-                          }))
-                        }
-                        className={`${inputCls} resize-none`}
-                        rows={2}
-                        placeholder="Brief description of your business"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-1 sm:col-span-2">
-                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                        Street Address
-                      </label>
-                      <input
-                        value={profileForm.street}
-                        onChange={(e) =>
-                          setProfileForm((f) => ({
-                            ...f,
-                            street: e.target.value,
-                          }))
-                        }
-                        className={inputCls}
-                        placeholder="123 Business Street"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                        City
-                      </label>
-                      <input
-                        value={profileForm.city}
-                        onChange={(e) =>
-                          setProfileForm((f) => ({
-                            ...f,
-                            city: e.target.value,
-                          }))
-                        }
-                        className={inputCls}
-                        placeholder="City"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                        Country
-                      </label>
-                      <select
-                        value={profileForm.country}
-                        onChange={(e) =>
-                          setProfileForm((f) => ({
-                            ...f,
-                            country: e.target.value,
-                          }))
-                        }
-                        className={inputCls}
-                      >
-                        <option value="">Select country</option>
-                        {nrsCountries.map((c) => (
-                          <option key={c.alpha_2} value={c.alpha_2}>
-                            {c.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                        State
-                      </label>
-                      <select
-                        value={profileForm.state}
-                        onChange={(e) =>
-                          setProfileForm((f) => ({
-                            ...f,
-                            state: e.target.value,
-                            lga: "", // Reset LGA when state changes
-                          }))
-                        }
-                        className={inputCls}
-                      >
-                        <option value="">Select state</option>
-                        {nrsStates.map((s) => (
-                          <option key={s.code} value={s.code}>
-                            {s.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                        LGA
-                      </label>
-                      <select
-                        value={profileForm.lga}
-                        onChange={(e) =>
-                          setProfileForm((f) => ({
-                            ...f,
-                            lga: e.target.value,
-                          }))
-                        }
-                        className={inputCls}
-                        disabled={!profileForm.state}
-                      >
-                        <option value="">Select LGA</option>
-                        {nrsLgas
-                          .filter((l) => l.state_code === profileForm.state)
-                          .map((l) => (
-                            <option key={l.code} value={l.code}>
-                              {l.name}
+                      <div className="flex flex-col gap-1">
+                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                          Contact Email
+                        </label>
+                        <input
+                          value={profileForm.contactEmail}
+                          onChange={(e) =>
+                            setProfileForm((f) => ({
+                              ...f,
+                              contactEmail: e.target.value,
+                            }))
+                          }
+                          className={`${inputCls} bg-gray-50 dark:bg-gray-700/50 cursor-not-allowed opacity-80`}
+                          type="email"
+                          placeholder="contact@business.com"
+                          disabled
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                          Contact Phone
+                        </label>
+                        <input
+                          value={profileForm.contactPhone}
+                          onChange={(e) =>
+                            setProfileForm((f) => ({
+                              ...f,
+                              contactPhone: e.target.value,
+                            }))
+                          }
+                          className={inputCls}
+                          placeholder="+234..."
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                          Industry
+                        </label>
+                        <select
+                          value={profileForm.industry}
+                          onChange={(e) =>
+                            setProfileForm((f) => ({
+                              ...f,
+                              industry: e.target.value,
+                            }))
+                          }
+                          className={inputCls}
+                        >
+                          <option value="">Select industry</option>
+                          {industries.map((ind) => (
+                            <option key={ind} value={ind}>
+                              {ind}
                             </option>
                           ))}
-                      </select>
+                        </select>
+                      </div>
+                      <div className="flex flex-col gap-1 sm:col-span-2">
+                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                          Description
+                        </label>
+                        <textarea
+                          value={profileForm.description}
+                          onChange={(e) =>
+                            setProfileForm((f) => ({
+                              ...f,
+                              description: e.target.value,
+                            }))
+                          }
+                          className={`${inputCls} resize-none`}
+                          rows={2}
+                          placeholder="Brief description of your business"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1 sm:col-span-2">
+                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                          Street Address
+                        </label>
+                        <input
+                          value={profileForm.street}
+                          onChange={(e) =>
+                            setProfileForm((f) => ({
+                              ...f,
+                              street: e.target.value,
+                            }))
+                          }
+                          className={inputCls}
+                          placeholder="123 Business Street"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                          City
+                        </label>
+                        <input
+                          value={profileForm.city}
+                          onChange={(e) =>
+                            setProfileForm((f) => ({
+                              ...f,
+                              city: e.target.value,
+                            }))
+                          }
+                          className={inputCls}
+                          placeholder="City"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                          Country
+                        </label>
+                        <select
+                          value={profileForm.country}
+                          onChange={(e) =>
+                            setProfileForm((f) => ({
+                              ...f,
+                              country: e.target.value,
+                            }))
+                          }
+                          className={inputCls}
+                        >
+                          <option value="">Select country</option>
+                          {nrsCountries.map((c) => (
+                            <option key={c.alpha_2} value={c.alpha_2}>
+                              {c.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                          State
+                        </label>
+                        <select
+                          value={profileForm.state}
+                          onChange={(e) =>
+                            setProfileForm((f) => ({
+                              ...f,
+                              state: e.target.value,
+                              lga: "", // Reset LGA when state changes
+                            }))
+                          }
+                          className={inputCls}
+                        >
+                          <option value="">Select state</option>
+                          {nrsStates.map((s) => (
+                            <option key={s.code} value={s.code}>
+                              {s.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                          LGA
+                        </label>
+                        <select
+                          value={profileForm.lga}
+                          onChange={(e) =>
+                            setProfileForm((f) => ({
+                              ...f,
+                              lga: e.target.value,
+                            }))
+                          }
+                          className={inputCls}
+                          disabled={!profileForm.state}
+                        >
+                          <option value="">Select LGA</option>
+                          {nrsLgas
+                            .filter((l) => l.state_code === profileForm.state)
+                            .map((l) => (
+                              <option key={l.code} value={l.code}>
+                                {l.name}
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                          Postal Code
+                        </label>
+                        <input
+                          value={profileForm.postalCode}
+                          onChange={(e) =>
+                            setProfileForm((f) => ({
+                              ...f,
+                              postalCode: e.target.value,
+                            }))
+                          }
+                          className={inputCls}
+                          placeholder="100001"
+                        />
+                      </div>
                     </div>
-                    <div className="flex flex-col gap-1">
-                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                        Postal Code
-                      </label>
-                      <input
-                        value={profileForm.postalCode}
-                        onChange={(e) =>
-                          setProfileForm((f) => ({
-                            ...f,
-                            postalCode: e.target.value,
-                          }))
-                        }
-                        className={inputCls}
-                        placeholder="100001"
-                      />
+                    <div className="flex justify-end mt-5">
+                      <button
+                        type="submit"
+                        disabled={savingProfile}
+                        className="px-5 py-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium rounded-xl disabled:opacity-50 transition-colors"
+                      >
+                        {savingProfile ? "Saving…" : "Save Changes"}
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-xs font-medium text-gray-400 dark:text-gray-500 mb-0.5">
+                        Business Name
+                      </p>
+                      <p className="text-gray-800 dark:text-white font-medium">
+                        {profile.name}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-gray-400 dark:text-gray-500 mb-0.5">
+                        TIN
+                      </p>
+                      <p className="text-gray-800 dark:text-white font-mono">
+                        {profile.taxIdentificationNumber || "—"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-gray-400 dark:text-gray-500 mb-0.5">
+                        Reg. Number
+                      </p>
+                      <p className="text-gray-800 dark:text-white font-mono">
+                        {profile.businessRegistrationNumber || "—"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-gray-400 dark:text-gray-500 mb-0.5">
+                        NRS Business ID
+                      </p>
+                      <p className="text-gray-800 dark:text-white font-mono">
+                        {profile.NRSBusinessId || "—"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-gray-400 dark:text-gray-500 mb-0.5">
+                        Service ID
+                      </p>
+                      <p className="text-gray-800 dark:text-white font-mono">
+                        {profile.serviceId || "—"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-gray-400 dark:text-gray-500 mb-0.5">
+                        Subscription Plan
+                      </p>
+                      <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400">
+                        {user?.subscriptionTier ?? "—"}
+                      </span>
                     </div>
                   </div>
-                  <div className="flex justify-end mt-5">
-                    <button
-                      type="submit"
-                      disabled={savingProfile}
-                      className="px-5 py-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium rounded-xl disabled:opacity-50 transition-colors"
-                    >
-                      {savingProfile ? "Saving…" : "Save Changes"}
-                    </button>
-                  </div>
-                </form>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <p className="text-xs font-medium text-gray-400 dark:text-gray-500 mb-0.5">
-                      Business Name
-                    </p>
-                    <p className="text-gray-800 dark:text-white font-medium">
-                      {profile.name}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium text-gray-400 dark:text-gray-500 mb-0.5">
-                      TIN
-                    </p>
-                    <p className="text-gray-800 dark:text-white font-mono">
-                      {profile.taxIdentificationNumber || "—"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium text-gray-400 dark:text-gray-500 mb-0.5">
-                      Reg. Number
-                    </p>
-                    <p className="text-gray-800 dark:text-white font-mono">
-                      {profile.businessRegistrationNumber || "—"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium text-gray-400 dark:text-gray-500 mb-0.5">
-                      NRS Business ID
-                    </p>
-                    <p className="text-gray-800 dark:text-white font-mono">
-                      {profile.NRSBusinessId || "—"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium text-gray-400 dark:text-gray-500 mb-0.5">
-                      Service ID
-                    </p>
-                    <p className="text-gray-800 dark:text-white font-mono">
-                      {profile.serviceId || "—"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium text-gray-400 dark:text-gray-500 mb-0.5">
-                      Subscription Plan
-                    </p>
-                    <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400">
-                      {user?.subscriptionTier ?? "—"}
-                    </span>
-                  </div>
-                </div>
-              )}
+                )}
               </Section>
             )}
 
@@ -1064,7 +1079,17 @@ export default function Settings() {
                     NRS Credentials
                     {profile?.hasNrsCredentials && (
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
+                        <svg
+                          className="w-3 h-3"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
                         Configured
                       </span>
                     )}
@@ -1084,7 +1109,11 @@ export default function Settings() {
                           setNRS((f) => ({ ...f, apiKey: e.target.value }))
                         }
                         className={inputCls}
-                        placeholder={profile?.hasNrsCredentials ? "••••••••  (already configured)" : "Enter new API key"}
+                        placeholder={
+                          profile?.hasNrsCredentials
+                            ? "••••••••  (already configured)"
+                            : "Enter new API key"
+                        }
                         autoComplete="off"
                       />
                     </div>
@@ -1101,7 +1130,11 @@ export default function Settings() {
                           }))
                         }
                         className={inputCls}
-                        placeholder={profile?.hasNrsCredentials ? "••••••••  (already configured)" : "Enter new client secret"}
+                        placeholder={
+                          profile?.hasNrsCredentials
+                            ? "••••••••  (already configured)"
+                            : "Enter new client secret"
+                        }
                         type="password"
                         autoComplete="new-password"
                       />
@@ -1113,7 +1146,11 @@ export default function Settings() {
                       disabled={savingNRS}
                       className="px-5 py-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium rounded-xl disabled:opacity-50 transition-colors"
                     >
-                      {savingNRS ? "Updating…" : profile?.hasNrsCredentials ? "Update Credentials" : "Save Credentials"}
+                      {savingNRS
+                        ? "Updating…"
+                        : profile?.hasNrsCredentials
+                          ? "Update Credentials"
+                          : "Save Credentials"}
                     </button>
                   </div>
                 </form>
@@ -1128,7 +1165,17 @@ export default function Settings() {
                     QR Code Configuration
                     {profile?.hasQrCodeConfig && (
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
+                        <svg
+                          className="w-3 h-3"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
                         Configured
                       </span>
                     )}
@@ -1149,7 +1196,11 @@ export default function Settings() {
                         }
                         className={`${inputCls} resize-none font-mono text-xs`}
                         rows={4}
-                        placeholder={profile?.hasQrCodeConfig ? "••••••••  (already configured — paste to replace)" : "-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----"}
+                        placeholder={
+                          profile?.hasQrCodeConfig
+                            ? "••••••••  (already configured — paste to replace)"
+                            : "-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----"
+                        }
                       />
                     </div>
                     <div className="flex flex-col gap-1">
@@ -1163,7 +1214,11 @@ export default function Settings() {
                         }
                         className={`${inputCls} resize-none font-mono text-xs`}
                         rows={4}
-                        placeholder={profile?.hasQrCodeConfig ? "••••••••  (already configured — paste to replace)" : "-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----"}
+                        placeholder={
+                          profile?.hasQrCodeConfig
+                            ? "••••••••  (already configured — paste to replace)"
+                            : "-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----"
+                        }
                       />
                     </div>
                   </div>
@@ -1173,7 +1228,11 @@ export default function Settings() {
                       disabled={savingQr}
                       className="px-5 py-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium rounded-xl disabled:opacity-50 transition-colors"
                     >
-                      {savingQr ? "Updating…" : profile?.hasQrCodeConfig ? "Update QR Config" : "Save QR Config"}
+                      {savingQr
+                        ? "Updating…"
+                        : profile?.hasQrCodeConfig
+                          ? "Update QR Config"
+                          : "Save QR Config"}
                     </button>
                   </div>
                 </form>
@@ -1187,10 +1246,7 @@ export default function Settings() {
                 description="Select which provider transmits your invoices to NRS. Switching requires you to register with the new provider on the NRS portal first."
               >
                 {appSettingsLoading ? (
-                  <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                    <div className="w-4 h-4 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
-                    Loading…
-                  </div>
+                  <SkeletonInlineSection />
                 ) : appProviders.length === 0 ? (
                   <p className="text-sm text-gray-500 dark:text-gray-400">
                     No APP providers configured by your platform administrator
@@ -1274,35 +1330,57 @@ export default function Settings() {
                 description="Set the minimum invoice amount that requires admin approval before submission to NRS. Invoices below this threshold are auto-approved."
               >
                 {flowRuleLoading ? (
-                  <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                    <div className="w-4 h-4 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
-                    Loading rule…
-                  </div>
+                  <SkeletonInlineSection />
                 ) : (
                   <>
                     {/* Status banner */}
                     {!flowRule ? (
                       <div className="mb-4 flex items-start gap-3 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700">
-                        <svg className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        <svg
+                          className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                          />
                         </svg>
                         <p className="text-sm text-amber-700 dark:text-amber-300">
-                          No approval rule configured — all invoices are auto-approved.
+                          No approval rule configured — all invoices are
+                          auto-approved.
                         </p>
                       </div>
                     ) : (
                       <div className="flex items-start gap-2 mb-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-800">
-                        <svg className="w-4 h-4 text-green-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <svg
+                          className="w-4 h-4 text-green-500 mt-0.5 shrink-0"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
                         </svg>
                         <div className="text-sm text-green-700 dark:text-green-300 space-y-0.5">
                           <p>
-                            <span className="font-semibold">Below ₦{flowRule.minAmount.toLocaleString()}</span>
-                            {" "}— auto-approved.
+                            <span className="font-semibold">
+                              Below ₦{flowRule.minAmount.toLocaleString()}
+                            </span>{" "}
+                            — auto-approved.
                           </p>
                           <p>
-                            <span className="font-semibold">At or above ₦{flowRule.minAmount.toLocaleString()}</span>
-                            {" "}— requires admin approval.
+                            <span className="font-semibold">
+                              At or above ₦{flowRule.minAmount.toLocaleString()}
+                            </span>{" "}
+                            — requires admin approval.
                           </p>
                         </div>
                       </div>
@@ -1316,14 +1394,22 @@ export default function Settings() {
                         <input
                           type="text"
                           inputMode="numeric"
-                          value={thresholdAmount ? parseInt(thresholdAmount, 10).toLocaleString() : ""}
-                          onChange={(e) => setThresholdAmount(e.target.value.replace(/\D/g, ""))}
+                          value={
+                            thresholdAmount
+                              ? parseInt(thresholdAmount, 10).toLocaleString()
+                              : ""
+                          }
+                          onChange={(e) =>
+                            setThresholdAmount(
+                              e.target.value.replace(/\D/g, ""),
+                            )
+                          }
                           className={inputCls}
                           placeholder="e.g. 1,000,000"
                         />
                         <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-                          Invoices at or above this amount will go to Pending Approval.
-                          Everything below is auto-approved.
+                          Invoices at or above this amount will go to Pending
+                          Approval. Everything below is auto-approved.
                         </p>
                       </div>
                       <div className="flex items-center gap-3 mt-5">
@@ -1332,7 +1418,11 @@ export default function Settings() {
                           disabled={savingFlowRule || !thresholdAmount}
                           className="px-5 py-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium rounded-xl disabled:opacity-50 transition-colors"
                         >
-                          {savingFlowRule ? "Saving…" : flowRule ? "Update Threshold" : "Set Threshold"}
+                          {savingFlowRule
+                            ? "Saving…"
+                            : flowRule
+                              ? "Update Threshold"
+                              : "Set Threshold"}
                         </button>
                         {flowRule && (
                           <button
@@ -1358,10 +1448,7 @@ export default function Settings() {
                 description="Use these credentials to authenticate against the ERP API."
               >
                 {loadingApiCredentials ? (
-                  <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                    <div className="w-4 h-4 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
-                    Loading credentials...
-                  </div>
+                  <SkeletonInlineSection />
                 ) : !apiCredentials ? (
                   <p className="text-sm text-gray-500 dark:text-gray-400">
                     No API credentials found.
@@ -1480,10 +1567,7 @@ export default function Settings() {
                 description="Use these details to connect your SFTP client and exchange invoice files."
               >
                 {loadingSftpCredentials ? (
-                  <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                    <div className="w-4 h-4 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
-                    Loading credentials...
-                  </div>
+                  <SkeletonInlineSection />
                 ) : !sftpCredentials ? (
                   <p className="text-sm text-gray-500 dark:text-gray-400">
                     No SFTP credentials found.

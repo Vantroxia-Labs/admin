@@ -27,6 +27,10 @@ import {
   MOCK_ITEMS,
   MOCK_TAX_CATEGORIES,
 } from "../../lib/mockData";
+import {
+  SkeletonCreateInvoice,
+  SkeletonDots,
+} from "../../components/ui/skeleton/Skeleton";
 
 const inputCls =
   "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500";
@@ -78,7 +82,9 @@ function PriceInput({
   });
 
   return (
-    <div className={`${className} bg-gray-50 dark:bg-gray-900/50 text-gray-500 dark:text-gray-400 flex items-center justify-end px-3 select-none`}>
+    <div
+      className={`${className} bg-gray-50 dark:bg-gray-900/50 text-gray-500 dark:text-gray-400 flex items-center justify-end px-3 select-none`}
+    >
       {formatted}
     </div>
   );
@@ -346,7 +352,9 @@ export default function CreateInvoice() {
           if (saved.lineItems) setLineItems(saved.lineItems);
           if (saved.docRefs) setDocRefs(saved.docRefs);
           setDraftId(resumeId);
-          toast.success("Draft loaded. Continue where you left off.");
+          toast.success("Draft loaded. Continue where you left off.", {
+            id: "draft-loaded",
+          });
         } catch {
           toast.error("Could not parse draft data.");
         }
@@ -502,7 +510,10 @@ export default function CreateInvoice() {
     setLineItems((prev) =>
       prev.map((li, i) =>
         i === index
-          ? { ...li, _taxCategories: li._taxCategories.filter((t) => t.code !== code) }
+          ? {
+              ...li,
+              _taxCategories: li._taxCategories.filter((t) => t.code !== code),
+            }
           : li,
       ),
     );
@@ -665,9 +676,15 @@ export default function CreateInvoice() {
     }
 
     // Resolve nested objects from loaded lookup arrays (fall back to code-only if not loaded yet)
-    const selectedCurrency = currencies.find((c) => c.code === form.currencyCode);
-    const selectedInvoiceType = invoiceTypes.find((t) => t.code === form.invoiceTypeCode);
-    const selectedPaymentMeans = paymentMeans.find((m) => m.code === form.paymentMeansCode);
+    const selectedCurrency = currencies.find(
+      (c) => c.code === form.currencyCode,
+    );
+    const selectedInvoiceType = invoiceTypes.find(
+      (t) => t.code === form.invoiceTypeCode,
+    );
+    const selectedPaymentMeans = paymentMeans.find(
+      (m) => m.code === form.paymentMeansCode,
+    );
 
     const payload: CreateInvoicePayload = {
       partyId: form.partyId,
@@ -709,11 +726,14 @@ export default function CreateInvoice() {
         const discountAmt = lineDiscountAmt(li);
         // FeeStandardUnit: 1 = Percent, 2 = NGN (flat amount)
         const discountCode = li._discountType === "percent" ? 1 : 2;
-        return ({
+        return {
           businessItemId: li.businessItemId,
           quantity: li.quantity,
-          discountFee: discountAmt > 0 ? { amount: discountAmt, code: discountCode } : undefined,
-        }) satisfies InvoiceItemPayload;
+          discountFee:
+            discountAmt > 0
+              ? { amount: discountAmt, code: discountCode }
+              : undefined,
+        } satisfies InvoiceItemPayload;
       }),
     };
 
@@ -728,7 +748,7 @@ export default function CreateInvoice() {
       } else {
         const result = await invoiceApi.create(payload);
         // Toast removed to prevent double-toast as the modal already confirms creation
-        setCreatedInvoiceId(result.id);
+        setCreatedInvoiceId(result.invoiceId);
         setShowPushModal(true);
       }
     } catch (err: unknown) {
@@ -800,6 +820,47 @@ export default function CreateInvoice() {
     if (matched) setForm((prev) => ({ ...prev, partyId: matched.id }));
   };
 
+  const resetForm = () => {
+    const today = new Date().toISOString().substring(0, 10);
+    setForm({
+      partyId: "",
+      issueDate: today,
+      dueDate: "",
+      currencyCode: "NGN",
+      invoiceTypeCode: noteTypeCode ?? "380",
+      invoiceKind: "B2B",
+      paymentMeansCode: "30",
+      note: "",
+      orderReference: "",
+      deliveryStartDate: today,
+      deliveryEndDate: today,
+    });
+    setDocRefs({
+      billingReference: [],
+      dispatchDocumentReference: null,
+      receiptDocumentReference: null,
+      originatorDocumentReference: null,
+      contractDocumentReference: null,
+      additionalDocumentReferences: [],
+    });
+    setLineItems([
+      {
+        businessItemId: "",
+        quantity: 1,
+        unitPrice: 0,
+        lineDiscount: 0,
+        _description: "",
+        _itemCode: "",
+        _taxCategories: [],
+        _discountType: "amount",
+        _discountPercent: 0,
+      },
+    ]);
+    setCreatedInvoiceId(null);
+    setPushSummary(null);
+    setDraftId(null);
+  };
+
   const handleSkipPush = () => {
     setShowPushModal(false);
     navigate("/invoices");
@@ -810,7 +871,10 @@ export default function CreateInvoice() {
       ...prev,
       issueDate: dateStr,
       // Keep deliveryStartDate in sync with issueDate unless user has changed it independently
-      deliveryStartDate: prev.deliveryStartDate === prev.issueDate ? dateStr : prev.deliveryStartDate,
+      deliveryStartDate:
+        prev.deliveryStartDate === prev.issueDate
+          ? dateStr
+          : prev.deliveryStartDate,
     }));
   }, []);
 
@@ -819,24 +883,27 @@ export default function CreateInvoice() {
       ...prev,
       dueDate: dateStr,
       // Keep deliveryEndDate in sync with dueDate unless user has changed it independently
-      deliveryEndDate: prev.deliveryEndDate === prev.dueDate ? dateStr : prev.deliveryEndDate,
+      deliveryEndDate:
+        prev.deliveryEndDate === prev.dueDate ? dateStr : prev.deliveryEndDate,
     }));
   }, []);
 
-  const handleDeliveryStartDateChange = useCallback((_: Date[], dateStr: string) => {
-    setForm((prev) => ({ ...prev, deliveryStartDate: dateStr }));
-  }, []);
+  const handleDeliveryStartDateChange = useCallback(
+    (_: Date[], dateStr: string) => {
+      setForm((prev) => ({ ...prev, deliveryStartDate: dateStr }));
+    },
+    [],
+  );
 
-  const handleDeliveryEndDateChange = useCallback((_: Date[], dateStr: string) => {
-    setForm((prev) => ({ ...prev, deliveryEndDate: dateStr }));
-  }, []);
+  const handleDeliveryEndDateChange = useCallback(
+    (_: Date[], dateStr: string) => {
+      setForm((prev) => ({ ...prev, deliveryEndDate: dateStr }));
+    },
+    [],
+  );
 
   if (loadingLookups) {
-    return (
-      <div className="flex items-center justify-center min-h-64">
-        <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <SkeletonCreateInvoice />;
   }
 
   return (
@@ -1554,7 +1621,9 @@ export default function CreateInvoice() {
                       {li.businessItemId && (
                         <div className="mt-1.5 space-y-1">
                           {li._taxCategories.length === 0 && (
-                            <span className="inline-block text-xs text-gray-400 italic">No tax / Exempt</span>
+                            <span className="inline-block text-xs text-gray-400 italic">
+                              No tax / Exempt
+                            </span>
                           )}
                           {li._taxCategories.map((entry) => {
                             const lineNetAmt = lineNet(li);
@@ -1570,11 +1639,17 @@ export default function CreateInvoice() {
                                 className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700"
                               >
                                 <span>
-                                  {entry.name} ({rateLabel}) = ₦{taxAmt.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                  {entry.name} ({rateLabel}) = ₦
+                                  {taxAmt.toLocaleString(undefined, {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                  })}
                                 </span>
                                 <button
                                   type="button"
-                                  onClick={() => removeTaxFromLine(index, entry.code)}
+                                  onClick={() =>
+                                    removeTaxFromLine(index, entry.code)
+                                  }
                                   className="text-amber-400 hover:text-red-500 transition-colors leading-none text-sm"
                                   title="Remove tax"
                                 >
@@ -1589,7 +1664,8 @@ export default function CreateInvoice() {
                             <select
                               value=""
                               onChange={(e) => {
-                                if (e.target.value) addTaxToLine(index, e.target.value);
+                                if (e.target.value)
+                                  addTaxToLine(index, e.target.value);
                               }}
                               className={`${inputCls} text-xs mt-0.5`}
                             >
@@ -1841,7 +1917,7 @@ export default function CreateInvoice() {
               </h2>
               <button
                 onClick={() => {
-                  setPushSummary(null);
+                  resetForm();
                   navigate("/invoices");
                 }}
                 className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
@@ -1879,7 +1955,8 @@ export default function CreateInvoice() {
                   </p>
                   <span
                     className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
-                      pushSummary.pipeline.transmit?.success
+                      pushSummary.pipeline.transmit?.success ||
+                      pushSummary.pipeline.transmit?.status === "SUCCESS"
                         ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
                         : "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
                     }`}
@@ -1898,6 +1975,8 @@ export default function CreateInvoice() {
                 {(["validate", "sign", "transmit"] as const).map(
                   (step, idx) => {
                     const s = pushSummary.pipeline[step];
+                    const stepOk =
+                      s?.success === true || s?.status === "SUCCESS";
                     const labels = ["1. Validate", "2. Sign", "3. Transmit"];
                     return (
                       <div
@@ -1906,12 +1985,12 @@ export default function CreateInvoice() {
                       >
                         <div
                           className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                            s?.success
+                            stepOk
                               ? "bg-green-100 dark:bg-green-900/30"
                               : "bg-red-100 dark:bg-red-900/30"
                           }`}
                         >
-                          {s?.success ? (
+                          {stepOk ? (
                             <svg
                               className="w-5 h-5 text-green-600 dark:text-green-400"
                               fill="none"
@@ -1966,7 +2045,7 @@ export default function CreateInvoice() {
             <div className="flex justify-end px-6 py-4 border-t border-gray-200 dark:border-gray-700">
               <button
                 onClick={() => {
-                  setPushSummary(null);
+                  resetForm();
                   navigate("/invoices");
                 }}
                 className="px-6 py-2.5 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium rounded-xl transition-colors"
@@ -2058,25 +2137,7 @@ export default function CreateInvoice() {
               >
                 {pushingToNRS ? (
                   <>
-                    <svg
-                      className="w-4 h-4 animate-spin"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8v8H4z"
-                      />
-                    </svg>
+                    <SkeletonDots />
                     Pushing...
                   </>
                 ) : (

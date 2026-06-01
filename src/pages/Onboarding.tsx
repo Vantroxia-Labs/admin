@@ -14,6 +14,7 @@ import {
 } from "../lib/api";
 import { USE_MOCK, MOCK_INDUSTRIES } from "../lib/mockData";
 import { useAuth } from "../context/AuthContext";
+import { SkeletonDot } from "../components/ui/skeleton/Skeleton";
 
 type Step = "profile" | "nrs" | "qr" | "done";
 
@@ -330,9 +331,8 @@ export default function Onboarding() {
                   onChange={pf("taxIdentificationNumber")}
                 />
                 {tinStatus === "checking" && (
-                  <p className="text-xs text-gray-400 mt-1 flex items-center gap-1.5">
-                    <span className="inline-block w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
-                    Validating TIN...
+                  <p className="text-xs text-gray-400 mt-1">
+                    <SkeletonDot label="Validating TIN..." />
                   </p>
                 )}
                 {tinStatus === "valid" && (

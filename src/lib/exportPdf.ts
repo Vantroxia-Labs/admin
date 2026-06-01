@@ -1,11 +1,3 @@
-/**
- * Prints a specific DOM element using the browser's native print/Save-as-PDF,
- * while preserving every applied style exactly as it appears on screen.
- *
- * Technique: inject a <style> that hides everything EXCEPT the target element,
- * then call window.print(). All Tailwind classes, CSS variables, and chart SVGs
- * are already resolved in the live DOM so the output is pixel-accurate.
- */
 export function exportElementToPdf(elementId: string, title: string): void {
   const el = document.getElementById(elementId);
   if (!el) {
@@ -14,19 +6,17 @@ export function exportElementToPdf(elementId: string, title: string): void {
   }
 
   const styleId = "__aegis_print_style__";
-  // Remove any leftover style from a previous call
   document.getElementById(styleId)?.remove();
 
   const style = document.createElement("style");
   style.id = styleId;
   style.textContent = `
     @media print {
-      /* Hide every visible node … */
+      /* Hide everything except the invoice content */
       body * { visibility: hidden !important; }
-      /* … but show our element and everything inside it */
       #${elementId},
       #${elementId} * { visibility: visible !important; }
-      /* Position the element flush to the page origin */
+
       #${elementId} {
         position: fixed !important;
         top: 0 !important;
@@ -36,22 +26,43 @@ export function exportElementToPdf(elementId: string, title: string): void {
         padding: 16px !important;
         background: #ffffff !important;
         box-shadow: none !important;
+        color: #111 !important;
       }
+
+      /* Hide action buttons, back nav, and app sidebar logo */
+      #invoice-actions,
+      #invoice-back-nav,
+      nav, aside, header, [class*="sidebar"],
+      [class*="logo"], [class*="brand-logo"] {
+        display: none !important;
+      }
+
+      /* QR code + Financial Summary on the same row */
+      #invoice-qr-financial {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 16px !important;
+        align-items: flex-start !important;
+      }
+      #invoice-qr-card {
+        flex: 0 0 192px !important;
+        width: 192px !important;
+      }
+      #invoice-financial-card {
+        flex: 1 1 auto !important;
+      }
+
       @page {
-        size: A4 landscape;
-        margin: 10mm;
+        size: A4 portrait;
+        margin: 12mm;
       }
     }
   `;
   document.head.appendChild(style);
 
-  // Set document title so the browser uses it as the default file name
   const originalTitle = document.title;
   document.title = title;
-
   window.print();
-
-  // Restore after the print dialog closes (it's synchronous on most browsers)
   document.title = originalTitle;
   style.remove();
 }

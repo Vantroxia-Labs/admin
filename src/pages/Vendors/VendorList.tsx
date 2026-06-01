@@ -1,5 +1,6 @@
 ﻿import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { normalizePhone } from "../../lib/phoneUtils";
 import PageMeta from "../../components/common/PageMeta";
 import TablePagination from "../../components/common/TablePagination";
 import { SkeletonTableRows } from "../../components/ui/skeleton/Skeleton";
@@ -139,7 +140,7 @@ export default function VendorList() {
       if (editing) {
         await vendorApi.update(editing.id, {
           businessName: form.businessName,
-          phone: form.phone || undefined,
+          phone: form.phone ? normalizePhone(form.phone) : undefined,
           vendorGroupId: form.vendorGroupId || undefined,
         });
         toast.success("Vendor updated");
@@ -147,7 +148,7 @@ export default function VendorList() {
         await vendorApi.create({
           businessName: form.businessName,
           email: form.email,
-          phone: form.phone || undefined,
+          phone: form.phone ? normalizePhone(form.phone) : undefined,
           vendorGroupId: form.vendorGroupId || undefined,
         });
         toast.success("Vendor created");

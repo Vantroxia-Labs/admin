@@ -7,6 +7,7 @@ import type { WhtSchedule } from "../../lib/api";
 import { USE_MOCK, MOCK_WHT_SCHEDULES } from "../../lib/mockData";
 import { useIsAdmin } from "../../context/AuthContext";
 import { useEnvMode } from "../../context/EnvModeContext";
+import { SkeletonScheduleList } from "../../components/ui/skeleton/Skeleton";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const MONTHS = [
@@ -422,9 +423,7 @@ export default function WhtSchedules() {
 
       {/* Schedules list */}
       {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
-        </div>
+        <SkeletonScheduleList rows={4} />
       ) : filtered.length === 0 ? (
         <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700">
           <p className="text-gray-500 dark:text-gray-400 mb-2">

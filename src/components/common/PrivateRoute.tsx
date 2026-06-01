@@ -1,24 +1,20 @@
 import { Navigate, Outlet, useLocation } from "react-router";
 import { useAuth } from "../../context/AuthContext";
+import { SkeletonAppLoader } from "../ui/skeleton/Skeleton";
 
 interface PrivateRouteProps {
   requiredRoles?: string[];
   requireOnboarding?: boolean;
 }
 
-export const PrivateRoute: React.FC<PrivateRouteProps> = ({ requiredRoles }) => {
+export const PrivateRoute: React.FC<PrivateRouteProps> = ({
+  requiredRoles,
+}) => {
   const { isAuthenticated, isLoading, user } = useAuth();
   const location = useLocation();
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-gray-500 dark:text-gray-400">Loading...</p>
-        </div>
-      </div>
-    );
+    return <SkeletonAppLoader />;
   }
 
   if (!isAuthenticated) {
@@ -30,7 +26,9 @@ export const PrivateRoute: React.FC<PrivateRouteProps> = ({ requiredRoles }) => 
   }
 
   if (requiredRoles && requiredRoles.length > 0) {
-    const hasRole = requiredRoles.some(r => user?.roles.includes(r) || (r === "Aegis" && user?.isAegisUser));
+    const hasRole = requiredRoles.some(
+      (r) => user?.roles.includes(r) || (r === "Aegis" && user?.isAegisUser),
+    );
     if (!hasRole) {
       return <Navigate to="/unauthorized" replace />;
     }

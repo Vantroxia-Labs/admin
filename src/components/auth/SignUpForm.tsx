@@ -11,6 +11,7 @@ import {
   type SubscriptionPlan,
 } from "../../lib/api";
 import { USE_MOCK, MOCK_PLANS } from "../../lib/mockData";
+import { SkeletonPlanCards, SkeletonDot } from "../ui/skeleton/Skeleton";
 
 type Step = "plan" | "details" | "confirm";
 type TinStatus = "idle" | "checking" | "valid" | "invalid" | "error";
@@ -261,9 +262,7 @@ export default function SignUpForm() {
             </div>
 
             {loadingPlans ? (
-              <div className="flex justify-center py-12">
-                <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
-              </div>
+              <SkeletonPlanCards />
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
                 {plans.map((plan) => {
@@ -425,9 +424,8 @@ export default function SignUpForm() {
                   onChange={handleFieldChange("tin")}
                 />
                 {tinStatus === "checking" && (
-                  <p className="text-xs text-gray-400 mt-1 flex items-center gap-1.5">
-                    <span className="inline-block w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
-                    Validating TIN...
+                  <p className="text-xs text-gray-400 mt-1">
+                    <SkeletonDot label="Validating TIN..." />
                   </p>
                 )}
                 {tinStatus === "valid" && (

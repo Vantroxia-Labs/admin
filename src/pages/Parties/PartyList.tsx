@@ -1,8 +1,12 @@
 ﻿import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { normalizePhone } from "../../lib/phoneUtils";
 import PageMeta from "../../components/common/PageMeta";
 import TablePagination from "../../components/common/TablePagination";
-import { SkeletonTableRows } from "../../components/ui/skeleton/Skeleton";
+import {
+  SkeletonTableRows,
+  SkeletonDot,
+} from "../../components/ui/skeleton/Skeleton";
 import {
   partyApi,
   tinValidationApi,
@@ -200,12 +204,13 @@ export default function PartyList() {
       }
     }
     setSaving(true);
+    const normalizedForm = { ...form, phone: normalizePhone(form.phone) };
     try {
       if (editingParty) {
-        await partyApi.update(editingParty.id, form);
+        await partyApi.update(editingParty.id, normalizedForm);
         toast.success("Party updated successfully.");
       } else {
-        await partyApi.create(form);
+        await partyApi.create(normalizedForm);
         toast.success("Party created successfully.");
       }
       handleCancelForm();
@@ -343,9 +348,8 @@ export default function PartyList() {
                         required
                       />
                       {tinStatus === "checking" && (
-                        <p className="text-xs text-gray-400 mt-1 flex items-center gap-1.5">
-                          <span className="inline-block w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
-                          Validating TIN...
+                        <p className="text-xs text-gray-400 mt-1">
+                          <SkeletonDot label="Validating TIN..." />
                         </p>
                       )}
                       {tinStatus === "valid" && (
