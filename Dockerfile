@@ -25,37 +25,7 @@ FROM nginx:alpine AS runtime
 
 # Custom nginx config for SPA routing
 COPY --from=build /app/dist /usr/share/nginx/html
-
-RUN cat > /etc/nginx/conf.d/default.conf << 'EOF'
-server {
-    listen 80;
-    server_name _;
-    root /usr/share/nginx/html;
-    index index.html;
-
-    # SPA fallback — all routes serve index.html
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-
-    # Cache static assets aggressively
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)$ {
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-    }
-
-    # Security headers
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header X-XSS-Protection "1; mode=block" always;
-    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
-
-    # Gzip
-    gzip on;
-    gzip_types text/css application/javascript application/json image/svg+xml;
-    gzip_min_length 256;
-}
-EOF
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
