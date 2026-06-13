@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.4
 # ═══════════════════════════════════════════════════════════════════════════
 # AegisRemit Admin Portal — Multi-stage Dockerfile
 # Place at: Vantroxia-Labs/admin/Dockerfile
