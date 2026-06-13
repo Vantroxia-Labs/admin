@@ -130,6 +130,7 @@ const AppSidebar: React.FC = () => {
     if (!submenuMatched) {
       setOpenSubmenu(null);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location, isActive]);
 
   useEffect(() => {

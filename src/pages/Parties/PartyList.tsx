@@ -70,6 +70,7 @@ export default function PartyList() {
       }
     }, 700);
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.taxIdentificationNumber]);
 
   const load = (p: number, ps: number) => {

@@ -119,6 +119,7 @@ export default function Settings() {
         .catch(() => { /* ignore — no rule yet */ })
         .finally(() => setFlowRuleLoading(false));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSaveProfile = async (e: React.FormEvent) => {

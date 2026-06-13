@@ -197,6 +197,7 @@ export default function InvoiceList() {
 
   useEffect(() => {
     if (isAdmin && activeTab === "approvals") loadPendingApprovals(pendingPage, pendingPageSize);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, isAdmin, pendingPage, pendingPageSize]);
 
   const handlePushToNRS = async (id: string, code: string) => {
