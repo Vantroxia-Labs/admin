@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router";
 import toast from "react-hot-toast";
 import { EyeCloseIcon, EyeIcon } from "../../icons";
@@ -18,9 +18,14 @@ export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate(from, { replace: true });
+    }
+  }, [from, isAuthenticated, navigate]);
+
   // Already logged in (e.g. mock mode) — go straight to app
   if (isAuthenticated) {
-    navigate(from, { replace: true });
     return null;
   }
 
