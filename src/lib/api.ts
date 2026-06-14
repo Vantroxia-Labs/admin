@@ -74,6 +74,13 @@ export interface SubscriptionPlan {
   annualPrice: number;
   currency: string;
   description: string;
+  externalPlanId?: string | null;
+  invoiceLimit?: number | null;
+  capabilities?: string[];
+  effectiveFromUtc?: string | null;
+  effectiveToUtc?: string | null;
+  parityStatus?: "unknown" | "in_sync" | "drift" | "stale";
+  parityCheckedAtUtc?: string | null;
 }
 export interface PaymentVerification {
   reference: string;

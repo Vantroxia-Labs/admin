@@ -5,7 +5,6 @@ import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import Button from "../ui/button/Button";
 import { authApi, paymentApi, tinValidationApi, type SubscriptionPlan } from "../../lib/api";
-import { USE_MOCK, MOCK_PLANS } from "../../lib/mockData";
 
 type Step = "plan" | "details" | "confirm";
 type TinStatus = "idle" | "checking" | "valid" | "invalid" | "error";
@@ -16,6 +15,7 @@ export default function SignUpForm() {
   const [step, setStep] = useState<Step>("plan");
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [loadingPlans, setLoadingPlans] = useState(true);
+  const [planLoadError, setPlanLoadError] = useState<string | null>(null);
 
   // Plan selection state
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
@@ -41,11 +41,6 @@ export default function SignUpForm() {
     if (!tin) { setTinStatus("idle"); setTinBusinessName(""); return; }
     setTinStatus("checking");
     const timer = setTimeout(async () => {
-      if (USE_MOCK) {
-        setTinStatus("valid");
-        setTinBusinessName(form.businessName || "Verified Business");
-        return;
-      }
       try {
         const result = await tinValidationApi.validate(tin);
         if (result.isValid && result.isEnrolled) {
@@ -61,18 +56,22 @@ export default function SignUpForm() {
       }
     }, 700);
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.tin]);
 
   useEffect(() => {
-    if (USE_MOCK) {
-      setPlans(MOCK_PLANS as SubscriptionPlan[]);
-      setLoadingPlans(false);
-      return;
-    }
+    setPlanLoadError(null);
     paymentApi.getPlans()
-      .then(setPlans)
-      .catch(() => toast.error("Failed to load plans. Please refresh."))
+      .then((result) => {
+        setPlans(result);
+
+        if (result.length === 0) {
+          setPlanLoadError("No active plans are available right now.");
+        }
+      })
+      .catch(() => {
+        setPlanLoadError("Failed to load plans. Please refresh.");
+        toast.error("Failed to load plans. Please refresh.");
+      })
       .finally(() => setLoadingPlans(false));
   }, []);
 
@@ -185,6 +184,10 @@ export default function SignUpForm() {
               <div className="flex justify-center py-12">
                 <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
               </div>
+            ) : planLoadError ? (
+              <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200">
+                {planLoadError}
+              </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
                 {plans.map(plan => {
@@ -230,7 +233,7 @@ export default function SignUpForm() {
               </div>
             )}
 
-            <Button className="w-full mt-6" size="sm" onClick={handlePlanNext} disabled={!selectedPlan}>
+            <Button className="w-full mt-6" size="sm" onClick={handlePlanNext} disabled={!selectedPlan || Boolean(planLoadError)}>
               Continue →
             </Button>
           </div>

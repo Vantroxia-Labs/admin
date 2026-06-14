@@ -201,7 +201,7 @@ export default function Onboarding() {
           <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
             Your business is ready to start issuing e-invoices on the Aegis NRS Portal.
           </p>
-          <Button className="w-full" size="sm" onClick={() => navigate("/")}>
+          <Button className="w-full" size="sm" onClick={() => navigate("/dashboard")}>
             Go to Dashboard
           </Button>
         </div>
