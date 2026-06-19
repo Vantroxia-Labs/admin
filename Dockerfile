@@ -18,9 +18,8 @@ ARG VITE_USE_MOCK=false
 ARG VITE_PAYLOAD_ENCRYPTION_KEY
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 ENV VITE_USE_MOCK=$VITE_USE_MOCK
-ENV VITE_PAYLOAD_ENCRYPTION_KEY=$VITE_PAYLOAD_ENCRYPTION_KEY
 
-RUN npm run build
+RUN VITE_PAYLOAD_ENCRYPTION_KEY=$VITE_PAYLOAD_ENCRYPTION_KEY npm run build
 
 # ── Stage 2: Serve with nginx ──────────────────────────────────────────────
 FROM nginx:alpine AS runtime
