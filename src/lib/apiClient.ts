@@ -9,6 +9,16 @@ const PROTECTED_AUTH_PATHS = new Set([
   "/profile/change-password",
 ]);
 
+// Auth endpoints that should NOT trigger the 401 refresh interceptor.
+// If login returns 401, we want the caller to see the actual error — not
+// a "Refresh token is required" error from a misguided refresh attempt.
+const AUTH_NO_RETRY_PATHS = new Set([
+  "/auth/login",
+  "/auth/refresh",
+  "/auth/forgot-password",
+  "/auth/register",
+]);
+
 // In-memory token storage (never in localStorage for security)
 let accessToken: string | null = null;
 
@@ -114,8 +124,17 @@ api.interceptors.response.use(
   (response: AxiosResponse) => response,
   async (error) => {
     const originalRequest = error.config;
+    const requestUrl = (originalRequest?.url ?? "").split("?")[0]?.toLowerCase() ?? "";
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Don't attempt token refresh for auth endpoints — let the caller
+    // handle 401s from login/register/refresh directly.
+    const isAuthPath = AUTH_NO_RETRY_PATHS.has(requestUrl);
+
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !isAuthPath
+    ) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
