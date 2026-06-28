@@ -8,19 +8,23 @@ import Button from "../ui/button/Button";
 import { useAuth } from "../../context/AuthContext";
 
 export default function SignInForm() {
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || "/";
+  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || "/dashboard";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Already logged in (e.g. mock mode) — go straight to app
+  // Already logged in — go straight to app or change password page
   if (isAuthenticated) {
-    navigate(from, { replace: true });
+    if (user?.mustChangePassword) {
+      navigate("/change-password", { replace: true });
+    } else {
+      navigate(from, { replace: true });
+    }
     return null;
   }
 
