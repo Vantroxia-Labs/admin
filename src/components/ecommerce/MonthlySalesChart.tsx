@@ -7,9 +7,9 @@ import { useState } from "react";
 
 export default function MonthlySalesChart() {
   const options: ApexOptions = {
-    colors: ["#465fff"],
+    colors: ["#7A022A"],
     chart: {
-      fontFamily: "Outfit, sans-serif",
+      fontFamily: "Pontano Sans, sans-serif",
       type: "bar",
       height: 180,
       toolbar: {
@@ -58,7 +58,7 @@ export default function MonthlySalesChart() {
       show: true,
       position: "top",
       horizontalAlign: "left",
-      fontFamily: "Outfit",
+      fontFamily: "Pontano Sans",
     },
     yaxis: {
       title: {

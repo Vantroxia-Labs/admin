@@ -460,7 +460,7 @@ export default function CreateInvoice() {
   return (
     <>
       <PageMeta
-        title="Create Invoice | Aegis NRS Portal"
+        title="Create Invoice | Aegis Remit Portal"
         description="Create a new e-invoice"
       />
 

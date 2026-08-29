@@ -126,7 +126,7 @@ export default function UserList() {
 
   return (
     <>
-      <PageMeta title="Users | Aegis NRS Portal" description="Manage portal users" />
+      <PageMeta title="Users | Aegis Remit Portal" description="Manage portal users" />
 
       <div className="flex items-center justify-between mb-6">
         <div>

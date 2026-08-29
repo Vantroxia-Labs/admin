@@ -278,7 +278,7 @@ export default function Settings() {
 
   return (
     <>
-      <PageMeta title="Settings | Aegis NRS Portal" description="Business settings and configuration" />
+      <PageMeta title="Settings | Aegis Remit Portal" description="Business settings and configuration" />
 
       <div className="mb-6">
         <h1 className="text-xl font-semibold text-gray-800 dark:text-white">Settings</h1>

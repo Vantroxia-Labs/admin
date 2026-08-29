@@ -304,13 +304,17 @@ const AppSidebar: React.FC = () => {
         <Link to="/dashboard" className="flex items-center gap-2">
           <img
             src="/images/logo/logo-icon.svg"
-            alt="Aegis"
-            width={32}
-            height={32}
+            alt=""
+            className="h-8 w-auto dark:hidden"
+          />
+          <img
+            src="/images/logo/logo-icon-white.svg"
+            alt=""
+            className="hidden h-8 w-auto dark:block"
           />
           {(isExpanded || isHovered || isMobileOpen) && (
             <span className="text-base font-bold text-gray-800 dark:text-white whitespace-nowrap">
-              Aegis EInvoicing
+              Aegis Remit
             </span>
           )}
         </Link>

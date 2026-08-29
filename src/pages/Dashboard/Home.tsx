@@ -99,13 +99,13 @@ function DonutChart({ series, labels, colors, title, total }: {
   total?: string;
 }) {
   const options: ApexOptions = {
-    chart: { type: "donut", fontFamily: "Outfit, sans-serif", sparkline: { enabled: false } },
+    chart: { type: "donut", fontFamily: "Pontano Sans, sans-serif", sparkline: { enabled: false } },
     colors,
     labels,
     legend: {
       show: true,
       position: "bottom",
-      fontFamily: "Outfit, sans-serif",
+      fontFamily: "Pontano Sans, sans-serif",
       fontSize: "12px",
       labels: { colors: "#6b7280" },
     },
@@ -252,7 +252,7 @@ export default function Home() {
 
   return (
     <>
-      <PageMeta title="Dashboard | Aegis NRS Portal" description="Aegis NRS e-invoicing dashboard" />
+      <PageMeta title="Dashboard | Aegis Remit Portal" description="Aegis Remit e-invoicing dashboard" />
 
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
@@ -320,7 +320,7 @@ export default function Home() {
             <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-5">
               <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Plan Distribution</h3>
               <div className="space-y-4 mt-6">
-                <PlanBar label="Portal (SaaS)" value={stats.saaSBusinesses} total={stats.totalBusinesses} color="#465fff" />
+                <PlanBar label="Portal (SaaS)" value={stats.saaSBusinesses} total={stats.totalBusinesses} color="#7A022A" />
                 <PlanBar label="SFTP Plan" value={stats.sftpPlanBusinesses} total={stats.totalBusinesses} color="#10b981" />
                 <PlanBar label="API Plan" value={stats.apiPlanBusinesses} total={stats.totalBusinesses} color="#f59e0b" />
               </div>
@@ -390,7 +390,7 @@ export default function Home() {
               <div className="space-y-3">
                 {[
                   { label: "Submitted to NRS", value: stats.submittedToNRS, color: "#8b5cf6" },
-                  { label: "IRNs Generated", value: stats.totalIRNsGenerated, color: "#465fff" },
+                  { label: "IRNs Generated", value: stats.totalIRNsGenerated, color: "#7A022A" },
                   { label: "Pending Approval", value: stats.pendingApprovalInvoices, color: "#f59e0b" },
                   { label: "Received Invoices", value: stats.totalReceivedInvoices, color: "#10b981" },
                   { label: "Rejected", value: stats.rejectedInvoices, color: "#ef4444" },

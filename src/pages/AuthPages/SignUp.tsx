@@ -6,8 +6,8 @@ export default function SignUp() {
   return (
     <>
       <PageMeta
-        title="Sign Up | Aegis EInvoicing Portal"
-        description="Register your business on the Aegis NRS e-invoicing portal"
+        title="Sign Up | Aegis Remit Portal"
+        description="Register your business on the Aegis Remit e-invoicing portal"
       />
       <AuthLayout>
         <SignUpForm />
