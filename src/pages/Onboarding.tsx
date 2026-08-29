@@ -40,6 +40,22 @@ export default function Onboarding() {
   const [tinStatus, setTinStatus] = useState<TinStatus>("idle");
   const [tinBusinessName, setTinBusinessName] = useState("");
 
+  const [profile, setProfile] = useState<ProfileForm>({
+    taxIdentificationNumber: "",
+    businessRegistrationNumber: "",
+    serviceId: "",
+    NRSBusinessId: "",
+    industry: "",
+    description: "",
+    contactEmail: "",
+    contactPhone: "",
+    street: "",
+    city: "",
+    state: "",
+    country: "Nigeria",
+    postalCode: "",
+  });
+
   useEffect(() => {
     const tin = profile.taxIdentificationNumber.trim();
     if (!tin) { setTinStatus("idle"); setTinBusinessName(""); return; }
@@ -66,22 +82,6 @@ export default function Onboarding() {
     }, 700);
     return () => clearTimeout(timer);
   }, [profile.taxIdentificationNumber]);
-
-  const [profile, setProfile] = useState<ProfileForm>({
-    taxIdentificationNumber: "",
-    businessRegistrationNumber: "",
-    serviceId: "",
-    NRSBusinessId: "",
-    industry: "",
-    description: "",
-    contactEmail: "",
-    contactPhone: "",
-    street: "",
-    city: "",
-    state: "",
-    country: "Nigeria",
-    postalCode: "",
-  });
 
   const [nrs, setNrs] = useState({ apiKey: "", clientSecret: "" });
   const [qr, setQr] = useState({ publicKey: "", certificate: "" });

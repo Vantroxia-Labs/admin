@@ -112,6 +112,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");
@@ -119,21 +120,25 @@ export const useAuth = () => {
 };
 
 // Convenience role helpers
+// eslint-disable-next-line react-refresh/only-export-components
 export const useIsAegis = () => {
   const { user } = useAuth();
   return user?.isAegisUser === true || user?.roles.includes("Aegis") === true;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useIsAdmin = () => {
   const { user } = useAuth();
   return user?.roles.includes("Admin") === true;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useIsUser = () => {
   const { user } = useAuth();
   return user?.roles.includes("User") === true;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useCanCreateInvoice = () => {
   const { user } = useAuth();
   if (!user) return false;
@@ -143,6 +148,7 @@ export const useCanCreateInvoice = () => {
   return true;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useSubscriptionTier = () => {
   const { user } = useAuth();
   return user?.subscriptionTier ?? null;
