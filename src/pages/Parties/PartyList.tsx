@@ -70,6 +70,7 @@ export default function PartyList() {
       }
     }, 700);
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.taxIdentificationNumber]);
 
   const load = (p: number, ps: number) => {
@@ -181,7 +182,7 @@ export default function PartyList() {
 
   return (
     <>
-      <PageMeta title="Parties | Aegis NRS Portal" description="Manage trading parties" />
+      <PageMeta title="Parties | Aegis Remit Portal" description="Manage trading parties" />
 
       <div className="flex items-center justify-between mb-6">
         <div>

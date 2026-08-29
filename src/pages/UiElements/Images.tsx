@@ -9,8 +9,8 @@ export default function Images() {
   return (
     <>
       <PageMeta
-        title="React.js Images Dashboard | Aegis EInvoicing - React.js Admin Dashboard Template"
-        description="This is React.js Images page for Aegis EInvoicing - React.js Tailwind CSS Admin Dashboard Template"
+        title="React.js Images Dashboard | Aegis Remit - React.js Admin Dashboard Template"
+        description="This is React.js Images page for Aegis Remit - React.js Tailwind CSS Admin Dashboard Template"
       />
       <PageBreadcrumb pageTitle="Images" />
       <div className="space-y-5 sm:space-y-6">

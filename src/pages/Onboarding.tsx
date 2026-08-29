@@ -40,6 +40,22 @@ export default function Onboarding() {
   const [tinStatus, setTinStatus] = useState<TinStatus>("idle");
   const [tinBusinessName, setTinBusinessName] = useState("");
 
+  const [profile, setProfile] = useState<ProfileForm>({
+    taxIdentificationNumber: "",
+    businessRegistrationNumber: "",
+    serviceId: "",
+    NRSBusinessId: "",
+    industry: "",
+    description: "",
+    contactEmail: "",
+    contactPhone: "",
+    street: "",
+    city: "",
+    state: "",
+    country: "Nigeria",
+    postalCode: "",
+  });
+
   useEffect(() => {
     const tin = profile.taxIdentificationNumber.trim();
     if (!tin) { setTinStatus("idle"); setTinBusinessName(""); return; }
@@ -66,22 +82,6 @@ export default function Onboarding() {
     }, 700);
     return () => clearTimeout(timer);
   }, [profile.taxIdentificationNumber]);
-
-  const [profile, setProfile] = useState<ProfileForm>({
-    taxIdentificationNumber: "",
-    businessRegistrationNumber: "",
-    serviceId: "",
-    NRSBusinessId: "",
-    industry: "",
-    description: "",
-    contactEmail: "",
-    contactPhone: "",
-    street: "",
-    city: "",
-    state: "",
-    country: "Nigeria",
-    postalCode: "",
-  });
 
   const [nrs, setNrs] = useState({ apiKey: "", clientSecret: "" });
   const [qr, setQr] = useState({ publicKey: "", certificate: "" });
@@ -199,7 +199,7 @@ export default function Onboarding() {
           </div>
           <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">Setup Complete!</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-            Your business is ready to start issuing e-invoices on the Aegis NRS Portal.
+            Your business is ready to start issuing e-invoices on the Aegis Remit Portal.
           </p>
           <Button className="w-full" size="sm" onClick={() => navigate("/dashboard")}>
             Go to Dashboard
@@ -213,8 +213,8 @@ export default function Onboarding() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-xl bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8">
         <div className="mb-6">
-          <img src="/images/logo/logo.svg" alt="Aegis NRS" className="h-8 dark:hidden" />
-          <img src="/images/logo/logo-dark.svg" alt="Aegis NRS" className="h-8 hidden dark:block" />
+          <img src="/images/logo/remit-logo.svg" alt="Aegis Remit" className="h-8 dark:hidden" />
+          <img src="/images/logo/remit-logo-dark.svg" alt="Aegis Remit" className="h-8 hidden dark:block" />
         </div>
         <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-1">Complete Your Business Setup</h2>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Configure your account to start submitting invoices to NRS.</p>

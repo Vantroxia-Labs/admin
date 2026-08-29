@@ -13,8 +13,8 @@ const PublicHeader: React.FC = () => {
     <header className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b border-gray-200 dark:border-gray-800">
       <div className="mx-auto max-w-7xl flex items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
         <Link to="/" className="flex items-center gap-2">
-          <img src="/images/logo/logo.svg" alt="Aegis Remit" className="h-8 dark:hidden" />
-          <img src="/images/logo/logo-dark.svg" alt="Aegis Remit" className="h-8 hidden dark:block" />
+          <img src="/images/logo/remit-logo.svg" alt="Aegis Remit" className="h-8 w-auto dark:hidden" />
+          <img src="/images/logo/remit-logo-dark.svg" alt="Aegis Remit" className="hidden h-8 w-auto dark:block" />
         </Link>
 
         <nav className="hidden md:flex items-center gap-8">
@@ -57,8 +57,8 @@ const PublicFooter: React.FC = () => (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
       <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
         <div>
-          <img src="/images/logo/logo.svg" alt="Aegis Remit" className="h-8 mb-4 dark:hidden" />
-          <img src="/images/logo/logo-dark.svg" alt="Aegis Remit" className="h-8 mb-4 hidden dark:block" />
+          <img src="/images/logo/remit-logo.svg" alt="Aegis Remit" className="h-8 w-auto mb-4 dark:hidden" />
+          <img src="/images/logo/remit-logo-dark.svg" alt="Aegis Remit" className="hidden h-8 w-auto mb-4 dark:block" />
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Streamlined e-invoicing and VAT compliance for Nigerian businesses.
           </p>

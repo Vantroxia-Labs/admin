@@ -1,0 +1,16 @@
+# Build context hygiene for the multi-stage Docker build (npm ci inside the image)
+node_modules/
+dist/
+.git/
+.gitignore
+.github/
+*.md
+.env
+.env.*
+!.env.example
+.vscode/
+.idea/
+*.log
+npm-debug.log*
+coverage/
+banner.png

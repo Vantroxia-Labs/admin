@@ -52,7 +52,7 @@ export default function ReceivedInvoiceList() {
   return (
     <>
       <PageMeta
-        title="Received Invoices | Aegis NRS Portal"
+        title="Received Invoices | Aegis Remit Portal"
         description="View invoices received from trading partners"
       />
 

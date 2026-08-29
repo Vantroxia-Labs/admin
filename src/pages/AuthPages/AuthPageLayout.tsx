@@ -18,8 +18,8 @@ export default function AuthLayout({
             <GridShape />
             <div className="flex flex-col items-center max-w-xs">
               <Link to="/" className="flex items-center gap-3 mb-4">
-                <img src="/images/logo/logo-icon.svg" alt="Aegis" width={48} height={48} />
-                <span className="text-2xl font-bold text-white">Aegis EInvoicing</span>
+                <img src="/images/logo/logo-icon-white.svg" alt="" className="h-12 w-auto" />
+                <span className="text-2xl font-bold text-white">Aegis Remit</span>
               </Link>
               <p className="text-center text-gray-400 dark:text-white/60">
                 Nigeria Revenue Service — Merchant Buyer Solution

@@ -8,21 +8,25 @@ import Button from "../ui/button/Button";
 import { useAuth } from "../../context/AuthContext";
 
 export default function SignInForm() {
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname || "/dashboard";
-
-  // Already logged in (e.g. mock mode) — go straight to app
-  if (isAuthenticated) {
-    navigate(from, { replace: true });
-    return null;
-  }
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Already logged in — go straight to app or change password page
+  if (isAuthenticated) {
+    if (user?.mustChangePassword) {
+      navigate("/change-password", { replace: true });
+    } else {
+      navigate(from, { replace: true });
+    }
+    return null;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,8 +55,9 @@ export default function SignInForm() {
     <div className="flex flex-col flex-1">
       <div className="w-full max-w-md pt-10 mx-auto">
         <div className="mb-2 flex items-center gap-2">
-          <img src="/images/logo/logo-icon.svg" alt="Aegis" className="h-8" />
-          <span className="text-lg font-bold text-gray-800 dark:text-white">Aegis EInvoicing</span>
+          <img src="/images/logo/logo-icon.svg" alt="" className="h-8 w-auto dark:hidden" />
+          <img src="/images/logo/logo-icon-white.svg" alt="" className="hidden h-8 w-auto dark:block" />
+          <span className="text-lg font-bold text-gray-800 dark:text-white">Aegis Remit</span>
         </div>
       </div>
       <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
@@ -62,7 +67,7 @@ export default function SignInForm() {
               Sign In
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Welcome back to the Aegis NRS Portal
+              Welcome back to the Aegis Remit Portal
             </p>
           </div>
           <form onSubmit={handleSubmit}>

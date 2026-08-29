@@ -39,8 +39,8 @@ export default function PaymentCallback() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
       <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 text-center">
         <div className="mb-4">
-          <img src="/images/logo/logo.svg" alt="Aegis NRS" className="h-10 mx-auto dark:hidden" />
-          <img src="/images/logo/logo-dark.svg" alt="Aegis NRS" className="h-10 mx-auto hidden dark:block" />
+          <img src="/images/logo/remit-logo.svg" alt="Aegis Remit" className="h-10 mx-auto dark:hidden" />
+          <img src="/images/logo/remit-logo-dark.svg" alt="Aegis Remit" className="h-10 mx-auto hidden dark:block" />
         </div>
 
         {status === "loading" && (

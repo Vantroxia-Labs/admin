@@ -8,8 +8,8 @@ export default function Buttons() {
   return (
     <div>
       <PageMeta
-        title="React.js Buttons Dashboard | Aegis EInvoicing - React.js Admin Dashboard Template"
-        description="This is React.js Buttons Dashboard page for Aegis EInvoicing - React.js Tailwind CSS Admin Dashboard Template"
+        title="React.js Buttons Dashboard | Aegis Remit - React.js Admin Dashboard Template"
+        description="This is React.js Buttons Dashboard page for Aegis Remit - React.js Tailwind CSS Admin Dashboard Template"
       />
       <PageBreadcrumb pageTitle="Buttons" />
       <div className="space-y-5 sm:space-y-6">

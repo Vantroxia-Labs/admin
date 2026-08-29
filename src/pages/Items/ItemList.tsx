@@ -143,7 +143,7 @@ export default function ItemList() {
   return (
     <>
       <PageMeta
-        title="Items | Aegis NRS Portal"
+        title="Items | Aegis Remit Portal"
         description="Manage business items and products"
       />
 

@@ -183,7 +183,7 @@ const IconGap = () => (
 
 const CHART_BASE: ApexOptions = {
   chart: {
-    fontFamily: "Outfit, sans-serif",
+    fontFamily: "Pontano Sans, sans-serif",
     toolbar: { show: false },
     zoom: { enabled: false },
   },
@@ -196,7 +196,7 @@ const CHART_BASE: ApexOptions = {
   },
   legend: {
     position: "top",
-    fontFamily: "Outfit, sans-serif",
+    fontFamily: "Pontano Sans, sans-serif",
     fontSize: "12px",
     labels: { colors: "#6b7280" },
   },
@@ -260,7 +260,7 @@ export default function Analytics() {
     ...CHART_BASE,
     chart: { ...CHART_BASE.chart, type: "bar" },
     plotOptions: { bar: { columnWidth: "50%", borderRadius: 3 } },
-    colors: ["#465FFF", "#22C55E"],
+    colors: ["#7A022A", "#22C55E"],
     xaxis: { ...CHART_BASE.xaxis, categories: monthLabels },
     yaxis: {
       labels: {
@@ -285,7 +285,7 @@ export default function Analytics() {
   const cashFlowOpts: ApexOptions = {
     ...CHART_BASE,
     chart: { ...CHART_BASE.chart, type: "area" },
-    colors: ["#465FFF", "#22C55E"],
+    colors: ["#7A022A", "#22C55E"],
     fill: {
       type: "gradient",
       gradient: { opacityFrom: 0.25, opacityTo: 0.03 },
@@ -368,7 +368,7 @@ export default function Analytics() {
       curve: "smooth",
       dashArray: [0, 5, 0, 5],
     },
-    colors: ["#465FFF", "#93C5FD", "#22C55E", "#86EFAC"],
+    colors: ["#7A022A", "#CD9EA2", "#22C55E", "#86EFAC"],
     markers: { size: 3 },
     xaxis: { ...CHART_BASE.xaxis, categories: monthLabels },
     yaxis: {
@@ -421,7 +421,7 @@ export default function Analytics() {
     plotOptions: {
       bar: { horizontal: true, barHeight: "60%", borderRadius: 3 },
     },
-    colors: ["#465FFF"],
+    colors: ["#7A022A"],
     xaxis: {
       labels: {
         style: { fontSize: "11px", colors: "#9ca3af" },
@@ -468,7 +468,7 @@ export default function Analytics() {
   return (
     <>
       <PageMeta
-        title="Analytics | Aegis NRS Portal"
+        title="Analytics | Aegis Remit Portal"
         description="Financial analytics and VAT intelligence"
       />
 
