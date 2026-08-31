@@ -76,7 +76,7 @@ export default function Profile() {
 
   return (
     <>
-      <PageMeta title="Profile | Aegis NRS Portal" description="Your account profile" />
+      <PageMeta title="Profile | Aegis Remit Portal" description="Your account profile" />
 
       <div className="mb-6">
         <h1 className="text-xl font-semibold text-gray-800 dark:text-white">My Profile</h1>

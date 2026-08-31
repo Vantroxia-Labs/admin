@@ -275,7 +275,7 @@ export default function InvoiceList() {
 
   return (
     <>
-      <PageMeta title="Invoices | Aegis NRS Portal" description="Manage your invoices" />
+      <PageMeta title="Invoices | Aegis Remit Portal" description="Manage your invoices" />
 
       <div className="flex items-center justify-between mb-6">
         <div>

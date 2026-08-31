@@ -73,8 +73,8 @@ export default function ForgotPassword() {
       <div className="flex flex-col flex-1">
         <div className="w-full max-w-md pt-10 mx-auto">
           <div className="mb-2">
-            <img src="/images/logo/logo.svg" alt="Aegis NRS" className="h-10 dark:hidden" />
-            <img src="/images/logo/logo-dark.svg" alt="Aegis NRS" className="h-10 hidden dark:block" />
+            <img src="/images/logo/remit-logo.svg" alt="Aegis Remit" className="h-10 dark:hidden" />
+            <img src="/images/logo/remit-logo-dark.svg" alt="Aegis Remit" className="h-10 hidden dark:block" />
           </div>
         </div>
         <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">

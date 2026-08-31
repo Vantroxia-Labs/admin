@@ -136,8 +136,9 @@ export default function SignUpForm() {
 
         {/* Logo */}
         <div className="mb-6 flex items-center gap-2">
-          <img src="/images/logo/logo-icon.svg" alt="Aegis" className="h-8" />
-          <span className="text-lg font-bold text-gray-800 dark:text-white">Aegis EInvoicing</span>
+          <img src="/images/logo/logo-icon.svg" alt="" className="h-8 w-auto dark:hidden" />
+          <img src="/images/logo/logo-icon-white.svg" alt="" className="hidden h-8 w-auto dark:block" />
+          <span className="text-lg font-bold text-gray-800 dark:text-white">Aegis Remit</span>
         </div>
 
         {/* Progress */}

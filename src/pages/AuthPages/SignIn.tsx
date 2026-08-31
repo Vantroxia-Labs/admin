@@ -6,8 +6,8 @@ export default function SignIn() {
   return (
     <>
       <PageMeta
-        title="Sign In | Aegis EInvoicing Portal"
-        description="Sign in to the Aegis NRS e-invoicing portal"
+        title="Sign In | Aegis Remit Portal"
+        description="Sign in to the Aegis Remit e-invoicing portal"
       />
       <AuthLayout>
         <SignInForm />
